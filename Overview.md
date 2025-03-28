@@ -4,7 +4,7 @@
 
 The original published SIV vote totals remain unchanged. This new sum of secretly-cancelled votes is also published, and its numbers can be subtracted from the SIV total, for the "uncorrupted" total.
 
-Then, **Admin** can then creates a zero-knowledge proof of the sum of all cancelled votes, to prove each cancellation was authorized by the individual voters' themselves, but without revealing to 3rd-party coercers or bribers which votes were cancelled.
+**Admin** can then create a zero-knowledge proof of the sum of all cancelled votes, to prove each cancellation was authorized by the individual voters' themselves, but without revealing to 3rd-party coercers or bribers which votes were cancelled.
 
 Fundamentally, the admin is proving in zero-knowledge that:
 
@@ -52,7 +52,7 @@ circom function generate_proof_of_secret_sum(
 
     assert recalculated_sum === claimed_sum_of_cancelled_votes_subset
 
-    // TODO: Prove that each of the private votes are unique
+    // TODO: Also prove that each of the private votes are unique
 }
 ```
 
