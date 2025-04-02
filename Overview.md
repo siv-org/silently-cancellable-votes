@@ -17,12 +17,18 @@ circom function generate_proof_of_secret_sum(
     public claimed_sum_of_cancelled_votes_subset, // grouped sum, like { washington: integer, arnold: integer }
     public election_public_key, // { recipient: hex_string }
     private votes_to_secretly_cancel, // { plaintext: string like '4444-4444-4444:washington', encoded: hex_string, randomizer: bigint_string }[]
+    public hash_of_vote_to_cancel // hash_string[]
+    private admin_key // bigint
+    public hash_of_admin_key // string
 ) {
     let recalculated_sum = {}
 
     // Prep for elliptic curve math
     let recipient = RP.fromHex(election_public_key.recipient)
 
+    // Prove admin secret key still hashes to a consistent value across batches
+    // To prevent re-using votes multiple times
+    assert hash(admin_key) === hash_of_admin_key
 
     // For each item in votes_to_secretly_sum,
     for (vote in votes_to_secretly_sum) {
@@ -35,8 +41,13 @@ circom function generate_proof_of_secret_sum(
         let encoded = RP.fromHex(vote.encoded)
         assert decode(encoded) === vote.plaintext
 
+        // Confirm it does in fact hash into the input_hash
+        // These hashes can be confirmed unique outside the circuit
+        assert hashes_of_votes_to_cancel[i] === hash(vote.randomizer, vote.encoded, admin_private_key)
+
         // Then we recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
-        // Encrypted = Encoded + (Recipient * randomizer)
+        // Encrypted = Encoded + (private * randomizer)
+
         let encrypted = encoded.add(recipient.multiply(vote.randomizer))
         // We can skip "lock", because we're not decrypting,
         // just confirming the encoded value is present in the full set.
@@ -51,8 +62,6 @@ circom function generate_proof_of_secret_sum(
     }
 
     assert recalculated_sum === claimed_sum_of_cancelled_votes_subset
-
-    // TODO: Also prove that each of the private votes are unique
 }
 ```
 
@@ -64,4 +73,33 @@ circom function generate_proof_of_secret_sum(
 - [ ] decode()
 - [ ] RP.add()
 - [ ] RP.multiply()
-- [ ] assert ... in
+- [x] assert ... in
+  - Use Poseidon hash— ZK Friendly hash.
+  - For inclusion proof.
+  - Build merkle tree outside of circuit.
+  - in circuit:
+    - pass merkle root,
+    - pass message, hash within circuit. that's a leaf.
+    - hash up a level with it's neighbors, to get hash one level up.
+      - repeat again until you get to root.
+      - QED the message is present in the root.     
+
+
+### More notes from latest session:
+
+#### For Ristretto in Circom, see:
+
+- https://github.com/Electron-Labs/ed25519-circom
+- https://medium.com/electron-labs/zk-ed25519-underlying-mathematics-8d4f64d9431b
+
+#### for loops:
+
+- can't use runtime parameterized lengths. Circuit needs pre-defined lengths, known at compile time.
+- Solution: Run in batches, eg 20 at time. Then pad last batch. One ZK Sum for each batch. Sum-of-sums outside of circuit.
+
+
+#### To test performance at compile time:
+
+`snarkjs r1cs info`
+
+- https://github.com/erhant/circomkit good framework for testing and performance
