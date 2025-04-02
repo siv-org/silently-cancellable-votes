@@ -17,8 +17,8 @@ circom function generate_proof_of_secret_sum(
     public claimed_sum_of_cancelled_votes_subset, // grouped sum, like { washington: integer, arnold: integer }
     public election_public_key, // { recipient: hex_string }
     private votes_to_secretly_cancel, // { plaintext: string like '4444-4444-4444:washington', encoded: hex_string, randomizer: bigint_string }[]
-    public hash_of_vote_to_cancel // hash_string[]
-    private admin_key // bigint
+    public hashes_of_votes_to_cancel, // hash_string[]
+    private admin_key, // bigint
     public hash_of_admin_key // string
 ) {
     let recalculated_sum = {}
