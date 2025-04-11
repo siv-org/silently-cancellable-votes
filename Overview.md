@@ -82,10 +82,9 @@ circom function generate_proof_of_secret_sum(
     - pass message, hash within circuit. that's a leaf.
     - hash up a level with it's neighbors, to get hash one level up.
       - repeat again until you get to root.
-      - QED the message is present in the root.     
+      - QED the message is present in the root.
 
-
-### More notes from latest session:
+### More notes from recent sessions:
 
 #### For Ristretto in Circom, see:
 
@@ -97,9 +96,12 @@ circom function generate_proof_of_secret_sum(
 - can't use runtime parameterized lengths. Circuit needs pre-defined lengths, known at compile time.
 - Solution: Run in batches, eg 20 at time. Then pad last batch. One ZK Sum for each batch. Sum-of-sums outside of circuit.
 
-
 #### To test performance at compile time:
 
 `snarkjs r1cs info`
 
 - https://github.com/erhant/circomkit good framework for testing and performance
+
+#### Useful circom overview (circom101) and common recipes (merkle tree, proving array distinct, sorted, poseidon hashing):
+
+- https://circom.erhant.me/index.html
