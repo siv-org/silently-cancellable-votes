@@ -97,7 +97,7 @@ To support your use case in-circuit, you’ll need:
 
 #### 1. Edwards Point Representation
 
-Use the twisted Edwards form of ed25519 (`-x² + y² = 1 + dx²y²`) in Circom. That’s what Electron Labs’ circom-ed25519 gives you.
+Use the twisted Edwards form of ed25519 (`-x² + y² = 1 + dx²y²`) in Circom. That’s what [Electron Labs’ circom-ed25519](https://github.com/Electron-Labs/ed25519-circom) gives you.
 
 Ristretto is a _compressed encoding_ of the prime-order subgroup of ed25519 — you don’t need to reimplement Ristretto in-circuit. You just need:
 
@@ -154,7 +154,7 @@ Yep
 
 ## ChatGPT
 
-[Wrote [zk_cancelled_votes_proof.circom](https://github.com/siv-org/silently-cancellable-votes/blob/c8db7789d8cf644a4d2d8ada8af8ed335901dd82/zk_cancelled_votes_proof.circom) file].
+[Created [zk_cancelled_votes_proof.circom](https://github.com/siv-org/silently-cancellable-votes/blob/c8db7789d8cf644a4d2d8ada8af8ed335901dd82/zk_cancelled_votes_proof.circom) file.]
 
 That’s a scaffolded circuit to prove each vote in a batch:
 
@@ -176,94 +176,15 @@ Yes
 
 ## ChatGPT
 
-Here’s a JS preprocessor using noble-ed25519 and @noble/hashes/poseidon that prepares the circuit inputs per vote:
+Here’s a JS preprocessor using `noble-ed25519` and `@noble/hashes/poseidon` that prepares the circuit inputs per vote:
 
-```ts
-import { RistrettoPoint, utils } from '@noble/ed25519'
-import { poseidon } from '@noble/hashes/poseidon'
-import { bytesToNumberLE } from '@noble/hashes/utils'
+[Created [preprocessor.ts](https://github.com/siv-org/silently-cancellable-votes/blob/1ce65f3b0805272327230a71429c537965c52c09/preprocessor.ts) file.]
 
-// --- CONFIG ---
-const TREE_DEPTH = 20 // match your Merkle tree height
+### Notes:
 
-// --- HELPERS ---
-
-function toAffineCoords(point: RistrettoPoint) {
-const edPoint = point.toRawBytes(true) // 32-byte compressed
-const decompressed = RistrettoPoint.fromHex(edPoint)
-const { x, y } = decompressed.toAffine()
-return {
-x: BigInt(x.toString()),
-y: BigInt(y.toString())
-}
-}
-
-function poseidonHash(...args: bigint[]) {
-return poseidon(args.map(x => BigInt(x)))
-}
-
-// --- MAIN ---
-
-export function prepareVoteInputs({
-votesToCancel, // [{ plaintext, encoded, randomizer }]
-recipientHex, // election pubkey as hex
-merkleTree // Poseidon tree object from circomlibjs or similar
-}) {
-const recipient = RistrettoPoint.fromHex(recipientHex)
-
-const encoded_x = []
-const encoded_y = []
-const randomizers = []
-const merkleProofs = []
-const merklePositions = []
-const sumHashInputs = []
-
-for (const vote of votesToCancel) {
-const encodedPoint = RistrettoPoint.fromHex(vote.encoded)
-const rand = BigInt(vote.randomizer)
-const { x, y } = toAffineCoords(encodedPoint)
-
-    encoded\_x.push(x)
-    encoded\_y.push(y)
-    randomizers.push(rand)
-
-    const ciphertext = encodedPoint.add(recipient.multiply(rand))
-    const { x: cx, y: cy } = toAffineCoords(ciphertext)
-    const leaf = poseidonHash(cx, cy)
-
-    const proof = merkleTree.getProof(leaf, TREE\_DEPTH)
-    merkleProofs.push(proof.siblings)
-    merklePositions.push(proof.pathIndices)
-    sumHashInputs.push(leaf) // placeholder — replace if needed
-
-}
-
-const claimedSum = poseidonHash(...sumHashInputs)
-
-return {
-public: {
-merkleRoot: merkleTree.root,
-voteHash: poseidonHash(...sumHashInputs), // optional
-claimedSum
-},
-private: {
-encoded_x,
-encoded_y,
-randomizers,
-merkleProofs,
-merklePositions
-}
-}
-}
-```
-
-Notes:
-
-RistrettoPoint.toAffine() is a placeholder — you’ll need to patch noble to expose x/y in extended or affine form (or extract from internal).
-
-Replace sumHashInputs logic with actual content extraction if you want per-category counts.
-
-You can build the Merkle tree using circomlibjs Poseidon tree helpers.
+- `RistrettoPoint.toAffine()` is a placeholder — you’ll need to patch noble to expose x/y in extended or affine form (or extract from internal).
+- Replace `sumHashInputs` logic with actual content extraction if you want per-category counts.
+- You can build the Merkle tree using [`circomlibjs`](https://github.com/iden3/circomlibjs) Poseidon tree helpers.
 
 Want help patching noble to extract x/y directly from Ristretto points?
 
@@ -273,54 +194,55 @@ ok
 
 ## ChatGPT
 
-To extract affine (x, y) coordinates from a RistrettoPoint using noble-ed25519, you need to:
+To extract affine `(x, y)` coordinates from a `RistrettoPoint` using `noble-ed25519`, you need to:
 
-Patch the library to expose the internal extended coordinates.
+1. Patch the library to expose the internal extended coordinates.
+2. Convert to affine manually.
 
-Convert to affine manually.
+### ✅ Step-by-step patch
 
-✅ Step-by-step patch
+#### 1. Patch `noble-ed25519` to expose internal point
 
-1. Patch noble-ed25519 to expose internal point
-   Find this in node_modules/@noble/ed25519/ristretto.js:
+Find this in `node_modules/@noble/ed25519/ristretto.js`:
 
-\`\`\`ts
-tsCopyEditclass RistrettoPoint {
-constructor(ep) {
-this.ep = ep; // ep = ExtendedPoint
+```ts
+class RistrettoPoint {
+  constructor(ep) {
+    this.ep = ep // ep = ExtendedPoint
+  }
+  // ...
 }
-// ...
-}
-\`\`\`
+```
 
 Below that, add:
 
-\`\`\`ts
-tsCopyEdit toExtended() {
-return this.ep;
+```ts
+toExtended() {
+  return this.ep;
 }
-\`\`\`
+```
 
-2. Extract affine (x, y) from ExtendedPoint
-   Now you can do:
+#### 2. Extract affine `(x, y)` from ExtendedPoint
 
-\`\`\`ts
-tsCopyEditimport { mod } from '@noble/ed25519/\_utils'
+Now you can do:
+
+```ts
+import { mod } from '@noble/ed25519/_utils'
 import { Field } from '@noble/ed25519/edwards'
 import { RistrettoPoint } from '@noble/ed25519'
 
 function toAffineCoords(rp: RistrettoPoint) {
-const ext = rp.toExtended()
-const Zinv = Field.invert(ext.z)
-const x = mod(Field.multiply(ext.x, Zinv), Field.ORDER)
-const y = mod(Field.multiply(ext.y, Zinv), Field.ORDER)
-return { x, y }
+  const ext = rp.toExtended()
+  const Zinv = Field.invert(ext.z)
+  const x = mod(Field.multiply(ext.x, Zinv), Field.ORDER)
+  const y = mod(Field.multiply(ext.y, Zinv), Field.ORDER)
+  return { x, y }
 }
-\`\`\`
+```
 
-Now toAffineCoords(point) gives usable BigInts for Circom.
+Now `toAffineCoords(point)` gives usable `BigInt`s for Circom.
 
-Let me know if you want this turned into a custom noble-ed25519 fork or wrapper module.
+Let me know if you want this turned into a custom `noble-ed25519` fork or wrapper module.
 
 ## User
 
@@ -328,51 +250,48 @@ Risk of curve25519 points being re-used 8 times, unlike ristretto points? To che
 
 ## ChatGPT
 
-Yes — this is a real risk if you use raw Curve25519 or Ed25519 points in a SNARK without safeguards:
+Yes — this is a **real risk** if you use raw Curve25519 or Ed25519 points in a SNARK without safeguards:
 
-⚠️ Problem: Cofactor = 8
+### ⚠️ Problem: Cofactor = 8
 
-Ed25519 and Curve25519 have cofactor 8.
+- Ed25519 and Curve25519 have **cofactor 8**.
+- That means each curve point in the full group corresponds to **8 different representations** in the extended group.
+- A malicious prover could reuse a vote **up to 8 times** with different encodings and **pass naive inclusion or uniqueness checks**.
 
-That means each curve point in the full group corresponds to 8 different representations in the extended group.
+#### Why?
 
-A malicious prover could reuse a vote up to 8 times with different encodings and pass naive inclusion or uniqueness checks.
-
-Why?
 Because:
 
-\`\`\`text
-textCopyEditP ≠ Q but 8·P = 8·Q
-\`\`\`
+```text
+P ≠ Q but 8·P = 8·Q
+```
 
-And if your circuit checks only 8·P values (or doesn’t check subgroup membership at all), then duplicates sneak through.
+And if your circuit checks only `8·P` values (or doesn’t check subgroup membership at all), then duplicates sneak through.
 
-✅ Ristretto fixes this
+### ✅ Ristretto fixes this
+
 Ristretto maps only the prime-order subgroup elements, eliminating the cofactor problem entirely:
 
-Every Ristretto-encoded point is canonical
+- Every Ristretto-encoded point is canonical
+- No duplicate representations
+- Hashing, equality, and inclusion checks are safe
 
-No duplicate representations
+### 🛠 Implication for your circuit
 
-Hashing, equality, and inclusion checks are safe
-
-🛠 Implication for your circuit
 If you're using Ed25519 in-circuit (not Ristretto):
 
-You must enforce subgroup membership — e.g., require cofactor · P ≠ 0
+- **You must enforce subgroup membership** — e.g., require `cofactor · P ≠ 0`
+- Better: **Only accept points generated from canonical Ristretto encodings**
 
-Better: Only accept points generated from canonical Ristretto encodings
+If you **preprocess votes using Ristretto → Ed25519**, and only allow those, you inherit Ristretto’s safety guarantees.
 
-If you preprocess votes using Ristretto → Ed25519, and only allow those, you inherit Ristretto’s safety guarantees.
+### ✅ Recommendation
 
-✅ Recommendation
 In your SNARK:
 
-Only accept vote points that were produced via Ristretto decoding
-
-Include a flag/input to confirm "this point came from Ristretto"
-
-(Optional) Multiply input point by cofactor and check it’s not identity — expensive but effective
+- Only accept vote points that were produced via Ristretto decoding
+- Include a flag/input to confirm "this point came from Ristretto"
+- (Optional) Multiply input point by cofactor and check it’s not identity — expensive but effective
 
 Would you like a constraint-friendly check for subgroup membership (e.g., 8·P ≠ 0) in Circom?
 
@@ -382,57 +301,51 @@ How to only accept vote points that were produced via Ristretto decoding
 
 ## ChatGPT
 
-To ensure a vote point was produced via Ristretto decoding, you must prove that it came from a canonical encoding — i.e., a valid Ristretto-encoded 32-byte string. But:
+To ensure a vote point was **produced via Ristretto decoding**, you must prove that it came from a **canonical encoding** — i.e., a valid Ristretto-encoded 32-byte string. But:
 
-Ristretto decoding is not circuit-friendly — it’s a complex process involving square roots, field inversions, and case distinctions.
+> **Ristretto decoding is not circuit-friendly — it’s a complex process involving square roots, field inversions, and case distinctions.**
 
-So inside a SNARK, you don’t reimplement Ristretto decoding. Instead:
+So inside a SNARK, you **don’t reimplement Ristretto decoding**. Instead:
 
-✅ Strategy: Prove Outside, Commit Inside
-Off-circuit (in JS):
+### ✅ Strategy: Prove Outside, Commit Inside
 
-Only accept votes where the encoded string is:
+#### Off-circuit (in JS):
 
-A valid Ristretto point (RistrettoPoint.fromHex(...) succeeds)
+1. Only accept votes where the encoded string is:
 
-Decode to Ed25519 point → extract affine (x, y)
+   - A valid Ristretto point (`RistrettoPoint.fromHex(...)` succeeds)
 
-Feed (x, y) as the only form of the vote point into the circuit
+2. Decode to Ed25519 point → extract affine `(x, y)`
 
-Hash the original 32-byte encoding with Poseidon (or SHA, depending on design)
+3. Feed `(x, y)` as the only form of the vote point into the circuit
 
-Use this hash as a uniqueness commitment inside the circuit
+4. Hash the original 32-byte encoding with Poseidon (or SHA, depending on design)
 
-In-circuit (in Circom):
+   - Use this hash as a **uniqueness commitment** inside the circuit
 
-Accept (x, y) as vote input
+#### In-circuit (in Circom):
 
-Accept the hash of the original Ristretto encoding
+- Accept `(x, y)` as vote input
+- Accept the hash of the original Ristretto encoding
+- For uniqueness checks:
+  - Use the hash of the original 32-byte Ristretto encoding
+  - These are unique if you **only accept canonical Ristretto strings externally**
 
-For uniqueness checks:
+### 🔐 Why this works
 
-Use the hash of the original 32-byte Ristretto encoding
-
-These are unique if you only accept canonical Ristretto strings externally
-
-🔐 Why this works
 Ristretto guarantees:
 
-Each encoding uniquely identifies one group element
+- Each encoding uniquely identifies one group element
+- There is **only one encoding per point**
+- If you restrict yourself to known-good Ristretto strings, no duplicates exist
 
-There is only one encoding per point
+So you **don’t need to prove in-circuit** that a point is Ristretto — just **commit to its Ristretto hash** and enforce external validation.
 
-If you restrict yourself to known-good Ristretto strings, no duplicates exist
+### ✅ Summary
 
-So you don’t need to prove in-circuit that a point is Ristretto — just commit to its Ristretto hash and enforce external validation.
-
-✅ Summary
-
-Off-circuit: enforce Ristretto point validity with noble
-
-In-circuit: accept (x, y) + Poseidon hash of encoded 32-byte string
-
-Uniqueness: check uniqueness of the hash values inside or outside circuit
+- **Off-circuit**: enforce Ristretto point validity with noble
+- **In-circuit**: accept `(x, y)` + Poseidon hash of encoded 32-byte string
+- **Uniqueness**: check uniqueness of the hash values inside or outside circuit
 
 Want a hashing function that converts Ristretto bytes to Poseidon leaf hashes for uniqueness checks?
 
@@ -442,126 +355,117 @@ How does this prevent malicious prover from cheating during pre-processing step?
 
 ## ChatGPT
 
-You're right — if the malicious prover controls preprocessing, and you just trust their (x, y) and claimed "this came from Ristretto", they can cheat by feeding in non-canonical, cofactor-variant points.
+You're right — if the **malicious prover controls preprocessing**, and you just trust their `(x, y)` and claimed "this came from Ristretto", **they can cheat** by feeding in non-canonical, cofactor-variant points.
+
 So the system must make cheating impossible, not just “unlikely”.
 
-✅ Solution: Commit to the Ristretto encoding and prove consistency
+### ✅ Solution: Commit to the Ristretto encoding _and prove consistency_
+
 You must enforce two properties:
 
-The point inside the circuit corresponds to a Ristretto encoding
-
-The encoding used externally is unique for the point
+1. **The point inside the circuit corresponds to a Ristretto encoding**
+2. **The encoding used externally is _unique_ for the point**
 
 This way, malicious re-encoding or cofactor-variant points can’t sneak in.
 
-🔐 Real Fix (practical + sound):
-You don't put Ristretto decoding in the circuit. Instead:
+### 🔐 Real Fix (practical + sound):
 
-Public input: Poseidon hash of the original Ristretto encoding (H(ristretto_bytes))
+#### You don't put Ristretto decoding in the circuit. Instead:
 
-Private input: (x, y) coordinates derived externally from ristretto_bytes
+- **Public input**: Poseidon hash of the (original Ristretto encoding) (`H(ristretto_bytes)`)
+- **Private input**: `(x, y)` coordinates derived externally from `ristretto_bytes`
+- **Inside the circuit**:
+  - Hash `(x, y)` → Poseidon
+  - Prove: `H(x, y) == H(ristretto_bytes)`
 
-Inside the circuit:
+**BUT:** this only works if the verifier independently checks off-circuit that:
 
-Hash (x, y) → Poseidon
+- The claimed `ristretto_bytes` are valid (canonical, decode successfully)
+- The `(x, y)` inside the proof are indeed the result of decoding those bytes
 
-Prove: H(x, y) == H(ristretto_bytes)
+So you now shift trust to a **deterministic preprocessing step** — **auditable, reproducible** — which enforces:
 
-BUT: this only works if the verifier independently checks off-circuit that:
+- Only canonical encodings allowed
+- Hash commitments are consistent with in-circuit points
 
-The claimed ristretto_bytes are valid (canonical, decode successfully)
+### 🧱 Enforcement Options
 
-The (x, y) inside the proof are indeed the result of decoding those bytes
+#### Option A: Trusted Setup Phase or Verifier-Side Check
 
-So you now shift trust to a deterministic preprocessing step — auditable, reproducible — which enforces:
+- Election authority precomputes `(x, y)` from Ristretto and publishes their hashes
+- Prover can only use one of those approved `(x, y)` points
+- Inclusion is proved in-circuit via Merkle
 
-Only canonical encodings allowed
+#### Option B: Require proof of valid encoding (expensive)
 
-Hash commitments are consistent with in-circuit points
+- Fully implement Ristretto decoding logic in-circuit (not recommended)
+- ~5,000–10,000 constraints per point
 
-🧱 Enforcement Options
-Option A: Trusted Setup Phase or Verifier-Side Check
+### ✅ What This Prevents
 
-Election authority precomputes (x, y) from Ristretto and publishes their hashes
-
-Prover can only use one of those approved (x, y) points
-
-Inclusion is proved in-circuit via Merkle
-
-Option B: Require proof of valid encoding (expensive)
-
-Fully implement Ristretto decoding logic in-circuit (not recommended)
-
-~5,000–10,000 constraints per point
-
-✅ What This Prevents
-
-Malicious prover creating 8 variants of the same logical vote
-
-Re-encoding vote with different low-order components
-
-Submitting points outside the prime-order subgroup
+- Malicious prover creating 8 variants of the same logical vote
+- Re-encoding vote with different low-order components
+- Submitting points outside the prime-order subgroup
 
 Let me know if you want:
 
-A concrete workflow for verifier-side hash validation
-
-A Poseidon-based commitment circuit that hashes (x, y) to compare with H(ristretto_bytes)
+- A concrete workflow for verifier-side hash validation
+- A Poseidon-based commitment circuit that hashes `(x, y)` to compare with `H(ristretto_bytes)`
 
 ## User
 
-This can work fine for the list of all_public_encrypted_votes, but not for the secret_votes_to_cancel, because those are secret. If we published hashes of them, it would be easy to brute force discover which ones they are
+This can work fine for the list of `all_public_encrypted_votes`, but not for the `secret_votes_to_cancel`, because those are secret. If we published hashes of them, it would be easy to brute force discover which ones they are
 
 ## ChatGPT
 
-Exactly — for the public list of all encrypted votes, you can precommit to known-good Ristretto points and validate inclusion in-circuit.
-But for the secret votes being cancelled, you’re right:
+Exactly — for the **public list of all encrypted votes**, you can precommit to known-good Ristretto points and validate inclusion in-circuit.
 
-🧨 Publishing hashes of Ristretto encodings (or even Poseidon(x, y)) would leak information.
+But for the **secret votes being cancelled**, you’re right:
+
+> **🧨 Publishing hashes of Ristretto encodings (or even Poseidon(x, y)) would leak information.**
 
 Someone could precompute all possible encodings and match.
 
-✅ What You Need for Secret Votes
-You want to privately prove that each secret vote corresponds to a valid Ristretto point without revealing which one. But you still need to:
+### ✅ What You Need for Secret Votes
 
-Prevent cofactor abuse
+You want to **privately prove that each secret vote corresponds to a valid Ristretto point** without revealing which one. But you still need to:
 
-Avoid leaking information via published hashes
+1. Prevent cofactor abuse
+2. Avoid leaking information via published hashes
 
 So we revise the strategy:
 
-🔐 Revised Proof Strategy
-In-circuit:
+### 🔐 Revised Proof Strategy
 
-Take input (x, y) of the vote
+#### In-circuit:
 
-Multiply by 8: P8 = 8·(x, y)
+1. Take input `(x, y)` of the vote
+2. Multiply by 8: `P8 = 8·(x, y)`
+3. Assert that `P8 ≠ 0` (or some fixed basepoint), to prove subgroup membership
 
-Assert that P8 ≠ 0 (or some fixed basepoint), to prove subgroup membership
+This prevents cofactor subgroup attacks by ensuring the point is in the **prime-order subgroup**, i.e., Ristretto’s safe set.
 
-This prevents cofactor subgroup attacks by ensuring the point is in the prime-order subgroup, i.e., Ristretto’s safe set.
-You no longer need to publish or hash the Ristretto encoding at all.
+**You no longer need to publish or hash the Ristretto encoding at all.**
 
-✅ Why this works
+### ✅ Why this works
+
 Ristretto = prime-order subgroup of Ed25519
-
 Multiplying by 8 kills low-order junk:
 
-If P is a cofactor-variant point → 8·P = 0
+- If `P` is a cofactor-variant point → `8·P = 0`
+- If `P` ∈ prime-order subgroup → `8·P ≠ 0`
 
-If P ∈ prime-order subgroup → 8·P ≠ 0
+### 🛠 How to check in Circom
 
-🛠 How to check in Circom
 You need:
 
-A scalar multiply circuit: P8 = mul(P, 8)
+- A scalar multiply circuit: `P8 = mul(P, 8)`
+- A not-equal-to-zero circuit: `P8 ≠ identity`
 
-A not-equal-to-zero circuit: P8 ≠ identity
+Can be done using `ed25519-circom`:
 
-Can be done using ed25519-circom:
-
-\`\`\`ts
-tsCopyEditcomponent mul8 = Ed25519ScalarMult();
+```ts
+component mul8 = Ed25519ScalarMult();
 mul8.P[0] <== vote_x;
 mul8.P[1] <== vote_y;
 mul8.e <== 8;
@@ -569,17 +473,15 @@ mul8.e <== 8;
 component notZero = NotEqualEd25519(); // You’d need to implement this
 notZero.P[0] <== mul8.out[0];
 notZero.P[1] <== mul8.out[1];
-\`\`\`
+```
 
-✅ Summary
+### ✅ Summary
 
-For public set: commit to canonical Ristretto encodings
+- For **public set**: commit to canonical Ristretto encodings
+- For **secret votes**: require that `(x, y)` is in prime-order subgroup by enforcing `8·P ≠ 0`
+- Avoids cofactor abuse without leaking identities via hashes
 
-For secret votes: require that (x, y) is in prime-order subgroup by enforcing 8·P ≠ 0
-
-Avoids cofactor abuse without leaking identities via hashes
-
-Want help wiring a NotEqualEd25519 circuit to check P ≠ identity in Circom?
+Want help wiring a `NotEqualEd25519` circuit to check `P ≠ identity` in Circom?
 
 ## User
 
@@ -587,12 +489,12 @@ sure
 
 ## ChatGPT
 
-Here’s a minimal Circom circuit to check that an Ed25519 point (x, y) is not the identity (i.e. not the neutral element 0 = (0,1)):
+Here’s a minimal Circom circuit to check that an Ed25519 point `(x, y)` is not the identity (i.e. not the neutral element `0 = (0,1)`):
 
-📦 NotIdentityEd25519.circom
+### 📦 `NotIdentityEd25519.circom`
 
-\`\`\`circom
-circomCopyEdit// Checks that (x, y) ≠ (0, 1)
+```ts
+// Checks that (x, y) ≠ (0, 1)
 
 template NotIdentityEd25519() {
 signal input x;
@@ -616,12 +518,12 @@ signal input y;
     isIdentity === 0;
 
 }
-\`\`\`
+```
 
-Usage inside your main circuit
+### Usage inside your main circuit
 
-\`\`\`circom
-circomCopyEditcomponent mul8 = Ed25519ScalarMult();
+```ts
+component mul8 = Ed25519ScalarMult();
 mul8.P[0] <== vote_x;
 mul8.P[1] <== vote_y;
 mul8.e <== 8;
@@ -629,17 +531,14 @@ mul8.e <== 8;
 component notIdentity = NotIdentityEd25519();
 notIdentity.x <== mul8.out[0];
 notIdentity.y <== mul8.out[1];
-\`\`\`
+```
 
-✅ Guarantees
+### ✅ Guarantees
+
 This enforces that your point is:
 
-Not one of the 8 cofactor variants
-
-In the correct Ristretto subgroup
-
-Safe for uniqueness, vote validity, etc.
+- Not one of the 8 cofactor variants
+- In the correct Ristretto subgroup
+- Safe for uniqueness, vote validity, etc.
 
 Let me know if you want a variation that allows identity in some edge cases (e.g., test-only), or compresses to fewer constraints.
-
----
