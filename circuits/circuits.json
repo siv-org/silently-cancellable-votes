@@ -1,0 +1,8 @@
+{
+    "CancelProof": {
+    "file": "./zk_cancelled_votes_proof",
+    "template": "CancelProof",
+    "params": [20],
+    "pubs": []
+  }
+}
