@@ -4,5 +4,11 @@
     "template": "CancelProof",
     "params": [20],
     "pubs": []
+  },
+  "Multiplier": {
+    "file": "./multiplier",
+    "template": "Multiplier2",
+    "params": [],
+    "pubs": []
   }
 }

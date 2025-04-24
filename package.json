@@ -1,12 +1,14 @@
 {
   "name": "silently-cancellable-votes",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Silently cancellable votes",
+  "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "circom:build": "NODE_OPTIONS=--max-old-space-size=4096 circomkit compile",
-    "circom:setup": "NODE_OPTIONS=--max-old-space-size=4096 circomkit setup"
+    "circom:setup": "NODE_OPTIONS=--max-old-space-size=4096 circomkit setup",
+    "mocha-test": "NODE_OPTIONS=--max-old-space-size=4096 mocha",
+    "test": "pnpm run mocha-test ts/__tests__/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +30,7 @@
     "chai-as-promised": "^8.0.1",
     "mocha": "^11.1.0",
     "ts-mocha": "^11.1.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }
