@@ -44,7 +44,7 @@ export function dechunkIntoBigInt(x: Binary[], mod = BigInt(2 ** 51)) {
 export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   const chunked = new Array(4)
   for (let i = 0; i < 4; i++) {
-    chunked.push(chunkBigInt(xyztPoint[i], BigInt(2 ** 85)))
+    chunked[i] = chunkBigInt(xyztPoint[i], BigInt(2 ** 85))
   }
   for (let i = 0; i < 4; i++) {
     pad(chunked[i], 3)

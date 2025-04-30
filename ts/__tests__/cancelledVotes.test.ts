@@ -42,6 +42,7 @@ describe('Multiplier circuit', function test() {
     const expected = base.add(base)
 
     // Convert ExtendedPoints to array of bits
+    // console.log({ P, Q })
     const chunkedP = chunk(P)
     const chunkedQ = chunk(Q)
 
@@ -58,6 +59,14 @@ describe('Multiplier circuit', function test() {
     // console.log({ result, expected, dechunkedResult })
 
     // expect(dechunkedResult).to.equal(expected)
-    console.log(R, expected)
+    // console.log(expected)
+    const chunkedExpected = chunk([
+      expected.x,
+      expected.y,
+      expected.z,
+      expected.t,
+    ])
+    console.log({ chunkedExpected })
+    void R
   })
 })
