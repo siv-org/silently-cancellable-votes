@@ -42,28 +42,12 @@ function pad(x, n) {
   return x
 }
 
-/** This function will give the right modulus as expected */
-function modulus(num, p) {
-  return ((num % p) + p) % p
-}
-
 function bitsToBigInt(arr) {
   res = BigInt(0)
   for (var i = 0; i < arr.length; i++) {
     res += BigInt(2) ** BigInt(i) * BigInt(arr[i])
   }
   return res
-}
-
-/** This function will convert a bigInt into the chucks of Integers */
-function chunkBigInt(n, mod = BigInt(2 ** 51)) {
-  if (!n) return [0]
-  let arr = []
-  while (n) {
-    arr.push(BigInt(modulus(n, mod)))
-    n /= mod
-  }
-  return arr
 }
 
 let p = BigInt(2 ** 255) - BigInt(19)
@@ -98,14 +82,6 @@ function point_mul(s, P) {
   return Q
 }
 
-function dechunkIntoBigInt(x, mod = BigInt(2 ** 51)) {
-  sum = 0n
-  for (let i = 0; i < x.length; i++) {
-    sum += mod ** BigInt(i) * x[i]
-  }
-  return sum
-}
-
 function point_equal(P, Q) {
   //  x1 / z1 == x2 / z2  <==>  x1 * z2 == x2 * z1
   if (modulus(P[0] * Q[2] - Q[0] * P[2], p) != 0n) {
@@ -123,11 +99,8 @@ export {
   normalize,
   bigIntToLEBuffer,
   pad,
-  chunkBigInt,
   bitsToBigInt,
   point_add,
-  modulus,
   point_mul,
-  dechunkIntoBigInt,
   point_equal,
 }

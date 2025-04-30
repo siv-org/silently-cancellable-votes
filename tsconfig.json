@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ES2022",
+    "moduleResolution": "node",
     "alwaysStrict": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
@@ -30,5 +30,5 @@
     "stripInternal": true
   },
   "exclude": ["node_modules"],
-  "include": ["./ts", "./circuits/ed25519/utils.js"]
+  "include": ["./ts", "circuits/ed25519/"]
 }
