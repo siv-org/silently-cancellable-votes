@@ -42,12 +42,12 @@ export const getSignal = async (
   tester: WitnessTester,
   witness: bigint[],
   name: string
-): Promise<bigint> => {
+): Promise<unknown> => {
   const prefix = 'main'
   // E.g. the full name of the signal "root" is "main.root"
   // You can look up the signal names using `circuit.getDecoratedOutput(witness))`
   const signalFullName = `${prefix}.${name}`
 
   const out = await tester.readWitness(witness, [signalFullName])
-  return BigInt(out[signalFullName])
+  return out[signalFullName]
 }
