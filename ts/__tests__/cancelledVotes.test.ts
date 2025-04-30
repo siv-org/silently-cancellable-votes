@@ -3,7 +3,7 @@ import { type WitnessTester } from 'circomkit'
 import { circomkitInstance, getSignal } from '../utils.js'
 import { expect } from 'chai'
 
-describe('Mulitplier circuit', function test() {
+describe('Multiplier circuit', function test() {
   this.timeout(900000)
 
   let circuit: WitnessTester<['a', 'b'], ['c']>
