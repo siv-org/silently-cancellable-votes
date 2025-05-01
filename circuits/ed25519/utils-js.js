@@ -34,14 +34,6 @@ function bigIntToLEBuffer(x) {
   return Buffer.from(convertToEvenLength(x.toString(16)), 'hex').reverse()
 }
 
-function pad(x, n) {
-  var total = n - x.length
-  for (var i = 0; i < total; i++) {
-    x.push(0n)
-  }
-  return x
-}
-
 function bitsToBigInt(arr) {
   res = BigInt(0)
   for (var i = 0; i < arr.length; i++) {

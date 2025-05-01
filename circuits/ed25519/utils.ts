@@ -1,6 +1,3 @@
-import { pad } from './utils-js.js'
-export { pad }
-
 export {
   buffer2bits,
   convertToEvenLength,
@@ -11,6 +8,14 @@ export {
   point_mul,
   point_equal,
 } from './utils-js.js'
+
+function pad(array: bigint[], targetLength: number) {
+  const total = targetLength - array.length
+  for (let i = 0; i < total; i++) {
+    array.push(0n)
+  }
+  return array
+}
 
 export type XYZTPoint = [bigint, bigint, bigint, bigint]
 type Binary = 0n | 1n
