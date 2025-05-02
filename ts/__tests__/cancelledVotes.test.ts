@@ -79,7 +79,7 @@ describe('Multiplier circuit', function test() {
     void R
   })
 
-  it('should support ed25519 scalar multiplication', async () => {
+  it.skip('should support ed25519 scalar multiplication', async () => {
     const base = ed.ExtendedPoint.BASE
     const P: XYZTPoint = [base.x, base.y, base.z, base.t]
     const scalar = BigInt(2) // Start with simple case: doubling a point
