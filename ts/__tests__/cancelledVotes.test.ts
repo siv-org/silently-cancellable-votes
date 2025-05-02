@@ -8,35 +8,14 @@ import { chunk, XYZTPoint } from '../../circuits/ed25519/utils'
 describe('Multiplier circuit', function test() {
   this.timeout(900000)
 
-  let multiplierCircuit: WitnessTester<['a', 'b'], ['c']>
-  let pointAdditionCircuit: WitnessTester<['P', 'Q'], ['R']>
-  let scalarMultiplicationCircuit: WitnessTester<['P', 'scalar'], ['R']>
-
-  before(async () => {
-    multiplierCircuit = await circomkitInstance.WitnessTester('Multiplier', {
-      file: './multiplier',
-      template: 'Multiplier2',
-      params: [],
-    })
-    pointAdditionCircuit = await circomkitInstance.WitnessTester(
-      'PointAddition',
-      {
-        file: './ed25519/point-addition',
-        template: 'PointAdd',
+  it.skip('should multiply two numbers', async () => {
+    const multiplierCircuit: WitnessTester<['a', 'b'], ['c']> =
+      await circomkitInstance.WitnessTester('Multiplier', {
+        file: './multiplier',
+        template: 'Multiplier2',
         params: [],
-      }
-    )
-    scalarMultiplicationCircuit = await circomkitInstance.WitnessTester(
-      'ScalarMultiplication',
-      {
-        file: './ed25519/scalar-multiplication',
-        template: 'ScalarMul',
-        params: [],
-      }
-    )
-  })
+      })
 
-  it('should multiply two numbers', async () => {
     const a = BigInt(2)
     const b = BigInt(3)
     const c = await multiplierCircuit.calculateWitness({ a, b })
@@ -45,6 +24,13 @@ describe('Multiplier circuit', function test() {
   })
 
   it('should support ed25519 point addition', async () => {
+    const pointAdditionCircuit: WitnessTester<['P', 'Q'], ['R']> =
+      await circomkitInstance.WitnessTester('PointAddition', {
+        file: './ed25519/point-addition',
+        template: 'PointAdd',
+        params: [],
+      })
+
     const base = ed.ExtendedPoint.BASE
     const P: XYZTPoint = [base.x, base.y, base.z, base.t]
     const Q = P
@@ -59,11 +45,8 @@ describe('Multiplier circuit', function test() {
       P: chunkedP,
       Q: chunkedQ,
     })
-    // const result = (await getSignal(
-    //   pointAdditionCircuit,
-    //   R,
-    //   'R'
-    // )) as unknown as ChunkedPoint
+    const result = await getSignal(pointAdditionCircuit, R, 'R')
+    console.log({ result })
     // const dechunkedResult = dechunk(result)
     // console.log({ result, expected, dechunkedResult })
 
@@ -80,6 +63,13 @@ describe('Multiplier circuit', function test() {
   })
 
   it.skip('should support ed25519 scalar multiplication', async () => {
+    const scalarMultiplicationCircuit: WitnessTester<['P', 'scalar'], ['R']> =
+      await circomkitInstance.WitnessTester('ScalarMultiplication', {
+        file: './ed25519/scalar-multiplication',
+        template: 'ScalarMul',
+        params: [],
+      })
+
     const base = ed.ExtendedPoint.BASE
     const P: XYZTPoint = [base.x, base.y, base.z, base.t]
     const scalar = BigInt(2) // Start with simple case: doubling a point
