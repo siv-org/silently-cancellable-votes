@@ -46,7 +46,7 @@ circom function generate_proof_of_secret_sum(
         assert hashes_of_votes_to_cancel[i] === hash(vote.randomizer, vote.encoded, admin_private_key)
 
         // Then we recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
-        // Encrypted = Encoded + (private * randomizer)
+        // Encrypted = Encoded + (Recipient * randomizer)
 
         let encrypted = encoded.add(recipient.multiply(vote.randomizer))
         // We can skip "lock", because we're not decrypting,
