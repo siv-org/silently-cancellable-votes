@@ -10,6 +10,7 @@ describe('Multiplier circuit', function test() {
 
   let multiplierCircuit: WitnessTester<['a', 'b'], ['c']>
   let pointAdditionCircuit: WitnessTester<['P', 'Q'], ['R']>
+  let scalarMultiplicationCircuit: WitnessTester<['P', 'scalar'], ['R']>
 
   before(async () => {
     multiplierCircuit = await circomkitInstance.WitnessTester('Multiplier', {
@@ -22,6 +23,14 @@ describe('Multiplier circuit', function test() {
       {
         file: './ed25519/point-addition',
         template: 'PointAdd',
+        params: [],
+      }
+    )
+    scalarMultiplicationCircuit = await circomkitInstance.WitnessTester(
+      'ScalarMultiplication',
+      {
+        file: './ed25519/scalar-multiplication',
+        template: 'ScalarMul',
         params: [],
       }
     )
@@ -60,6 +69,32 @@ describe('Multiplier circuit', function test() {
 
     // expect(dechunkedResult).to.equal(expected)
     // console.log(expected)
+    const chunkedExpected = chunk([
+      expected.x,
+      expected.y,
+      expected.z,
+      expected.t,
+    ])
+    console.log({ chunkedExpected })
+    void R
+  })
+
+  it('should support ed25519 scalar multiplication', async () => {
+    const base = ed.ExtendedPoint.BASE
+    const P: XYZTPoint = [base.x, base.y, base.z, base.t]
+    const scalar = BigInt(2) // Start with simple case: doubling a point
+
+    // Get expected result using noble-ed25519
+    const expected = base.multiply(scalar)
+
+    // Convert point to array of bits
+    const chunkedP = chunk(P)
+
+    const R = await scalarMultiplicationCircuit.calculateWitness({
+      P: chunkedP,
+      scalar: scalar,
+    })
+
     const chunkedExpected = chunk([
       expected.x,
       expected.y,
