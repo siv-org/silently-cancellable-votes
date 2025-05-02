@@ -90,7 +90,6 @@ export {
   convertToEvenLength,
   normalize,
   bigIntToLEBuffer,
-  pad,
   bitsToBigInt,
   point_add,
   point_mul,
