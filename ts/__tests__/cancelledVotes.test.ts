@@ -31,13 +31,13 @@ describe('Multiplier circuit', function test() {
         params: [],
       })
 
+    // Try adding the base point to itself
     const base = ed.ExtendedPoint.BASE
     const P: XYZTPoint = [base.x, base.y, base.z, base.t]
     const Q = P
     const expected = base.add(base)
 
     // Convert ExtendedPoints to array of bits
-    // console.log({ P, Q })
     const chunkedP = chunk(P)
     const chunkedQ = chunk(Q)
 
