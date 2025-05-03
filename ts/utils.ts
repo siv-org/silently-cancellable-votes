@@ -51,3 +51,33 @@ export const getSignal = async (
   const out = await tester.readWitness(witness, [signalFullName])
   return out[signalFullName]
 }
+
+/**
+ * Get a signal from a 2D array in the circuit
+ * @param tester - the circuit tester
+ * @param witness - the witness
+ * @param name - the base name of the signal (e.g., 'R' for 'R[0][0]')
+ * @param dimensions - array of dimensions to iterate over
+ * @returns the signal values as a 2D array of bigints
+ */
+export const get2DArraySignal = async (
+  tester: WitnessTester,
+  witness: bigint[],
+  name: string,
+  dimensions: number[]
+): Promise<bigint[][]> => {
+  const [rows, cols] = dimensions
+  const result: bigint[][] = Array(rows)
+    .fill(null)
+    .map(() => [])
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const signalName = `${name}[${i}][${j}]`
+      const value = await getSignal(tester, witness, signalName)
+      result[i][j] = BigInt(String(value))
+    }
+  }
+
+  return result
+}

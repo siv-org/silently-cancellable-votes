@@ -1,6 +1,6 @@
 import { type WitnessTester } from 'circomkit'
 
-import { circomkitInstance, getSignal } from '../utils.ts'
+import { circomkitInstance, getSignal, get2DArraySignal } from '../utils.ts'
 import { expect } from 'chai'
 import * as ed from '@noble/ed25519'
 import { chunk, type XYZTPoint } from '../../circuits/ed25519/utils.ts'
@@ -45,21 +45,20 @@ describe('Multiplier circuit', function test() {
       P: chunkedP,
       Q: chunkedQ,
     })
-    const result = await getSignal(pointAdditionCircuit, R, 'R')
-    console.log({ result })
-    // const dechunkedResult = dechunk(result)
-    // console.log({ result, expected, dechunkedResult })
 
-    // expect(dechunkedResult).to.equal(expected)
-    // console.log(expected)
-    const chunkedExpected = chunk([
-      expected.x,
-      expected.y,
-      expected.z,
-      expected.t,
-    ])
-    console.log({ chunkedExpected })
-    void R
+    // Get all 12 output values (4 coordinates × 3 chunks each)
+    const result = await get2DArraySignal(pointAdditionCircuit, R, 'R', [4, 3])
+
+    // Reconstruct the coordinates from 85-bit chunks
+    const dechunkedResult: XYZTPoint = result.map(
+      (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
+    ) as XYZTPoint
+
+    // Compare with expected values directly
+    expect(dechunkedResult[0]).to.equal(expected.x)
+    expect(dechunkedResult[1]).to.equal(expected.y)
+    expect(dechunkedResult[2]).to.equal(expected.z)
+    expect(dechunkedResult[3]).to.equal(expected.t)
   })
 
   it.skip('should support ed25519 scalar multiplication', async () => {

@@ -160,18 +160,18 @@ template PointAdd(){
         R[3][i] <== final_modulo4.out[i];    
     } 
 
-    log(R[0][0]);
-    log(R[0][1]);
-    log(R[0][2]);
-    log(R[1][0]);
-    log(R[1][1]);
-    log(R[1][2]);
-    log(R[2][0]);
-    log(R[2][1]);
-    log(R[2][2]);
-    log(R[3][0]);
-    log(R[3][1]);
-    log(R[3][2]);
+    // log(R[0][0]);
+    // log(R[0][1]);
+    // log(R[0][2]);
+    // log(R[1][0]);
+    // log(R[1][1]);
+    // log(R[1][2]);
+    // log(R[2][0]);
+    // log(R[2][1]);
+    // log(R[2][2]);
+    // log(R[3][0]);
+    // log(R[3][1]);
+    // log(R[3][2]);
 }
 
 template DoublePt(){
