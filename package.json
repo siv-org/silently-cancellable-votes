@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Silently cancellable votes",
   "type": "module",
+  "engines": {
+    "node": ">=22.6.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "circom:build": "NODE_OPTIONS=--max-old-space-size=4096 circomkit compile",
