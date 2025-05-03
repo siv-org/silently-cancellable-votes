@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "circom:build": "NODE_OPTIONS=--max-old-space-size=4096 circomkit compile",
     "circom:setup": "NODE_OPTIONS=--max-old-space-size=4096 circomkit setup",
-    "test": "NODE_OPTIONS=--max-old-space-size=4096 mocha ts/__tests__/*.test.ts"
+    "test": "NODE_OPTIONS='--max-old-space-size=4096 --experimental-strip-types' mocha ts/__tests__/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,8 +28,6 @@
     "chai": "^5.2.0",
     "chai-as-promised": "^8.0.1",
     "mocha": "^11.1.0",
-    "ts-mocha": "^11.1.0",
-    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }

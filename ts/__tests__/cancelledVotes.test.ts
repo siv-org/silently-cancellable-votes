@@ -1,9 +1,9 @@
 import { type WitnessTester } from 'circomkit'
 
-import { circomkitInstance, getSignal } from '../utils'
+import { circomkitInstance, getSignal } from '../utils.ts'
 import { expect } from 'chai'
 import * as ed from '@noble/ed25519'
-import { chunk, XYZTPoint } from '../../circuits/ed25519/utils'
+import { chunk, type XYZTPoint } from '../../circuits/ed25519/utils.ts'
 
 describe('Multiplier circuit', function test() {
   this.timeout(900000)
