@@ -42,7 +42,7 @@ describe('Curve-25519 circuits', function test() {
       const chunkedP = chunk(P)
       const chunkedQ = chunk(Q)
 
-      const R = await pointAdditionCircuit.calculateWitness({
+      const witness = await pointAdditionCircuit.calculateWitness({
         P: chunkedP,
         Q: chunkedQ,
       })
@@ -50,7 +50,7 @@ describe('Curve-25519 circuits', function test() {
       // Get all 12 output values (4 coordinates × 3 chunks each)
       const result = await get2DArraySignal(
         pointAdditionCircuit,
-        R,
+        witness,
         'R',
         [4, 3]
       )
@@ -89,7 +89,7 @@ describe('Curve-25519 circuits', function test() {
       // Convert point to array of bits
       const chunkedP = chunk(P)
 
-      const R = await scalarMultiplicationCircuit.calculateWitness({
+      const witness = await scalarMultiplicationCircuit.calculateWitness({
         P: chunkedP,
         scalar: scalar,
       })
@@ -101,7 +101,7 @@ describe('Curve-25519 circuits', function test() {
         expected.t,
       ])
       console.log({ chunkedExpected })
-      void R
+      void witness
     })
   })
 })
