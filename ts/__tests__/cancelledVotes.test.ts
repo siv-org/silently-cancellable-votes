@@ -59,8 +59,9 @@ describe('Curve-25519 circuits', function test() {
     })
   })
 
-  describe('Scalar multiplication', () => {
-    it.skip('should multiply a point by a scalar', async () => {
+  describe('Scalar multiplication', function () {
+    this.timeout(100_000)
+    it('should multiply a point by a scalar', async () => {
       const circuit: WitnessTester<['P', 'scalar'], ['R']> =
         await circomkit.WitnessTester('ScalarMultiplication', {
           file: './ed25519/scalar-multiplication',
@@ -80,7 +81,7 @@ describe('Curve-25519 circuits', function test() {
 
       const witness = await circuit.calculateWitness({
         P: chunkedP,
-        scalar: scalar,
+        scalar,
       })
 
       // Get all 12 output values of the chunked point
