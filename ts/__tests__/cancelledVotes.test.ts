@@ -1,14 +1,14 @@
 import { type WitnessTester } from 'circomkit'
 
-import { circomkitInstance, getSignal, get2DArraySignal } from '../utils.ts'
+import { circomkit, getSignal, getChunkedPointSignal } from '../utils.ts'
 import { expect } from 'chai'
 import * as ed from '@noble/ed25519'
-import { chunk, type XYZTPoint } from '../../circuits/ed25519/utils.ts'
+import { chunk, dechunk, type XYZTPoint } from '../../circuits/ed25519/utils.ts'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
     const multiplierCircuit: WitnessTester<['a', 'b'], ['c']> =
-      await circomkitInstance.WitnessTester('Multiplier', {
+      await circomkit.WitnessTester('Multiplier', {
         file: './multiplier',
         template: 'Multiplier2',
         params: [],
@@ -26,7 +26,7 @@ describe('Curve-25519 circuits', function test() {
   describe('Point addition', () => {
     it('should add a point to itself', async () => {
       const pointAdditionCircuit: WitnessTester<['P', 'Q'], ['R']> =
-        await circomkitInstance.WitnessTester('PointAddition', {
+        await circomkit.WitnessTester('PointAddition', {
           file: './ed25519/point-addition',
           template: 'PointAdd',
           params: [],
@@ -43,18 +43,15 @@ describe('Curve-25519 circuits', function test() {
         Q: chunk(Q),
       })
 
-      // Get all 12 output values (4 coordinates × 3 chunks each)
-      const result = await get2DArraySignal(
+      // Get all 12 output values of the chunked point
+      const result = await getChunkedPointSignal(
         pointAdditionCircuit,
         witness,
-        'R',
-        [4, 3]
+        'R'
       )
 
       // Reconstruct the coordinates from 85-bit chunks
-      const dechunkedResult: XYZTPoint = result.map(
-        (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
-      ) as XYZTPoint
+      const dechunkedResult: XYZTPoint = dechunk(result)
 
       // Compare with expected values directly
       expect(dechunkedResult).to.deep.equal([
@@ -69,7 +66,7 @@ describe('Curve-25519 circuits', function test() {
   describe('Scalar multiplication', () => {
     it.skip('should multiply a point by a scalar', async () => {
       const scalarMultiplicationCircuit: WitnessTester<['P', 'scalar'], ['R']> =
-        await circomkitInstance.WitnessTester('ScalarMultiplication', {
+        await circomkit.WitnessTester('ScalarMultiplication', {
           file: './ed25519/scalar-multiplication',
           template: 'ScalarMul',
           params: [],

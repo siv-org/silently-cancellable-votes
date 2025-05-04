@@ -9,7 +9,7 @@ export {
   point_equal,
 } from './utils-js.js'
 
-function pad(array: bigint[], targetLength: number) {
+function padWithZeroes(array: bigint[], targetLength: number) {
   const total = targetLength - array.length
   for (let i = 0; i < total; i++) {
     array.push(0n)
@@ -18,8 +18,12 @@ function pad(array: bigint[], targetLength: number) {
 }
 
 export type XYZTPoint = [bigint, bigint, bigint, bigint]
-type Binary = 0n | 1n
-type ChunkedPoint = [Binary[], Binary[], Binary[], Binary[]]
+
+/** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
+type Chunk = [bigint, bigint, bigint]
+
+/** 4 chunks, corresponding to XYZT coordinates */
+export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
 
 /** Give the right modulus as expected */
 export function modulus(num: bigint, p: bigint) {
@@ -27,9 +31,10 @@ export function modulus(num: bigint, p: bigint) {
 }
 
 /** Convert a bigInt into the chucks of Integers */
-export function chunkBigInt(n: bigint, mod = BigInt(2 ** 51)): bigint[] {
+export function chunkBigInt(n: bigint): bigint[] {
+  const mod = BigInt(2 ** 85)
   if (!n) return [0n]
-  let arr = []
+  const arr = []
   while (n) {
     arr.push(BigInt(modulus(n, mod)))
     n /= mod
@@ -37,33 +42,20 @@ export function chunkBigInt(n: bigint, mod = BigInt(2 ** 51)): bigint[] {
   return arr
 }
 
-export function dechunkIntoBigInt(x: Binary[], mod = BigInt(2 ** 51)) {
-  let sum = 0n
-  for (let i = 0; i < x.length; i++) {
-    sum += mod ** BigInt(i) * x[i]
-  }
-  return sum
-}
-
-/** Convert ExtendedPoints (XYZTPoint) to arrays of bits
- *
- * [bigint, bigint, bigint, bigint] => [binary[], binary[], binary[], binary[]] */
+/** Convert ExtendedPoints (XYZTPoint) to arrays of 85-bit chunks */
 export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   const chunked = new Array(4)
   for (let i = 0; i < 4; i++) {
-    chunked[i] = chunkBigInt(xyztPoint[i], BigInt(2 ** 85))
+    chunked[i] = chunkBigInt(xyztPoint[i])
   }
   for (let i = 0; i < 4; i++) {
-    pad(chunked[i], 3)
+    padWithZeroes(chunked[i], 3)
   }
   return chunked as ChunkedPoint
 }
 
-/** [binary[], binary[], binary[], binary[]] => [bigint, bigint, bigint, bigint] */
-export function dechunk(chunked: ChunkedPoint): XYZTPoint {
-  const result = []
-  for (let i = 0; i < 4; i++) {
-    result.push(dechunkIntoBigInt(chunked[i] as Binary[]))
-  }
-  return result as XYZTPoint
-}
+/** Convert 85-bit chunks back to XYZTPoint */
+export const dechunk = (chunked: ChunkedPoint): XYZTPoint =>
+  chunked.map(
+    (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
+  ) as XYZTPoint
