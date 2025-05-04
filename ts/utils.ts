@@ -2,15 +2,25 @@ import { Circomkit, type WitnessTester, type CircomkitConfig } from 'circomkit'
 import fs from 'fs'
 import path from 'path'
 
+export type XYZTPoint = [bigint, bigint, bigint, bigint]
+
+/** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
+type Chunk = [bigint, bigint, bigint]
+
+/** 4 chunks, corresponding to XYZT coordinates */
+export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
+
+// Instantiate Circomkit
 const configFilePath = path.resolve('circomkit.json')
 const config = JSON.parse(
   fs.readFileSync(configFilePath, 'utf-8')
 ) as CircomkitConfig
-
 export const circomkit = new Circomkit({
   ...config,
   verbose: false,
 })
+
+// Helper functions to extract signals from witnesses
 
 /** Get a signal from the circuit
  * @param circuit - the circuit object
@@ -32,13 +42,34 @@ export const getSignal = async (
   return out[signalFullName]
 }
 
-export type XYZTPoint = [bigint, bigint, bigint, bigint]
+/** Get a ChunkedPoint signal from the circuit
+ * @param tester - the circuit tester
+ * @param witness - the witness
+ * @param name - the base name of the signal (e.g., 'R' for 'R[0][0]')
+ * @returns the signal values as a ChunkedPoint (4 coordinates, each split into 3 85-bit chunks)
+ */
+export const getChunkedPointSignal = async (
+  tester: WitnessTester,
+  witness: bigint[],
+  name: string
+): Promise<ChunkedPoint> => {
+  const [rows, cols] = [4, 3]
+  const result: bigint[][] = Array(rows)
+    .fill(null)
+    .map(() => [])
 
-/** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
-type Chunk = [bigint, bigint, bigint]
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const signalName = `${name}[${i}][${j}]`
+      const value = await getSignal(tester, witness, signalName)
+      result[i][j] = BigInt(String(value))
+    }
+  }
 
-/** 4 chunks, corresponding to XYZT coordinates */
-export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
+  return result as ChunkedPoint
+}
+
+// Helper functions to convert between XYZTPoints and ChunkedPoints
 
 function padWithZeroes(array: bigint[], targetLength: number) {
   const total = targetLength - array.length
@@ -84,30 +115,3 @@ export const dechunk = (chunked: ChunkedPoint): XYZTPoint =>
   chunked.map(
     (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
   ) as XYZTPoint
-
-/** Get a ChunkedPoint signal from the circuit
- * @param tester - the circuit tester
- * @param witness - the witness
- * @param name - the base name of the signal (e.g., 'R' for 'R[0][0]')
- * @returns the signal values as a ChunkedPoint (4 coordinates, each split into 3 85-bit chunks)
- */
-export const getChunkedPointSignal = async (
-  tester: WitnessTester,
-  witness: bigint[],
-  name: string
-): Promise<ChunkedPoint> => {
-  const [rows, cols] = [4, 3]
-  const result: bigint[][] = Array(rows)
-    .fill(null)
-    .map(() => [])
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      const signalName = `${name}[${i}][${j}]`
-      const value = await getSignal(tester, witness, signalName)
-      result[i][j] = BigInt(String(value))
-    }
-  }
-
-  return result as ChunkedPoint
-}
