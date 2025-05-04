@@ -7,7 +7,7 @@ import {
   getChunkedPointSignal,
   chunk,
   dechunk,
-  type XYZTPoint,
+  xyztObjToArray,
 } from '../utils.ts'
 
 describe('Basic multiplier (example)', function test() {
@@ -39,7 +39,7 @@ describe('Curve-25519 circuits', function test() {
 
       // Try adding the base point to itself
       const base = ed.ExtendedPoint.BASE
-      const P: XYZTPoint = [base.x, base.y, base.z, base.t]
+      const P = xyztObjToArray(base)
       const Q = P
       const expected = base.add(base)
 
@@ -52,15 +52,10 @@ describe('Curve-25519 circuits', function test() {
       const result = await getChunkedPointSignal(circuit, witness, 'R')
 
       // Reconstruct the coordinates from 85-bit chunks
-      const dechunkedResult: XYZTPoint = dechunk(result)
+      const dechunkedResult = dechunk(result)
 
       // Compare with expected values directly
-      expect(dechunkedResult).to.deep.equal([
-        expected.x,
-        expected.y,
-        expected.z,
-        expected.t,
-      ])
+      expect(dechunkedResult).to.deep.equal(xyztObjToArray(expected))
     })
   })
 
@@ -74,8 +69,8 @@ describe('Curve-25519 circuits', function test() {
         })
 
       const base = ed.ExtendedPoint.BASE
-      const P: XYZTPoint = [base.x, base.y, base.z, base.t]
-      const scalar = BigInt(2) // Start with simple case: doubling a point
+      const P = xyztObjToArray(base)
+      const scalar = BigInt(3) // Start with simple case: tripling a point
 
       // Get expected result using noble-ed25519
       const expected = base.multiply(scalar)
@@ -88,14 +83,13 @@ describe('Curve-25519 circuits', function test() {
         scalar: scalar,
       })
 
-      const chunkedExpected = chunk([
-        expected.x,
-        expected.y,
-        expected.z,
-        expected.t,
-      ])
-      console.log({ chunkedExpected })
-      void witness
+      // Get all 12 output values of the chunked point
+      const result = await getChunkedPointSignal(circuit, witness, 'R')
+
+      // Reconstruct the coordinates from 85-bit chunks
+      const dechunkedResult = dechunk(result)
+
+      expect(dechunkedResult).to.deep.equal(xyztObjToArray(expected))
     })
   })
 })

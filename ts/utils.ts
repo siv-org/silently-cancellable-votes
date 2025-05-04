@@ -2,7 +2,7 @@ import { Circomkit, type WitnessTester, type CircomkitConfig } from 'circomkit'
 import fs from 'fs'
 import path from 'path'
 
-export type XYZTPoint = [bigint, bigint, bigint, bigint]
+type XYZTPoint = [bigint, bigint, bigint, bigint]
 
 /** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
 type Chunk = [bigint, bigint, bigint]
@@ -115,3 +115,11 @@ export const dechunk = (chunked: ChunkedPoint): XYZTPoint =>
   chunked.map(
     (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
   ) as XYZTPoint
+
+/** Convert an ExtendedPoint object to an XYZTPoint array */
+export const xyztObjToArray = (xyztObj: {
+  x: bigint
+  y: bigint
+  z: bigint
+  t: bigint
+}): XYZTPoint => [xyztObj.x, xyztObj.y, xyztObj.z, xyztObj.t]
