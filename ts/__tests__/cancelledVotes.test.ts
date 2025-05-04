@@ -12,7 +12,7 @@ import {
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
-    const multiplierCircuit: WitnessTester<['a', 'b'], ['c']> =
+    const circuit: WitnessTester<['a', 'b'], ['c']> =
       await circomkit.WitnessTester('MultiplierDemo', {
         file: './multiplier-demo',
         template: 'MultiplierDemo',
@@ -21,8 +21,8 @@ describe('Basic multiplier (example)', function test() {
 
     const a = BigInt(2)
     const b = BigInt(3)
-    const c = await multiplierCircuit.calculateWitness({ a, b })
-    const result = await getSignal(multiplierCircuit, c, 'c')
+    const c = await circuit.calculateWitness({ a, b })
+    const result = await getSignal(circuit, c, 'c')
     expect(result).to.equal(a * b)
   })
 })
@@ -30,7 +30,7 @@ describe('Basic multiplier (example)', function test() {
 describe('Curve-25519 circuits', function test() {
   describe('Point addition', () => {
     it('should add a point to itself', async () => {
-      const pointAdditionCircuit: WitnessTester<['P', 'Q'], ['R']> =
+      const circuit: WitnessTester<['P', 'Q'], ['R']> =
         await circomkit.WitnessTester('PointAddition', {
           file: './ed25519/point-addition',
           template: 'PointAdd',
@@ -43,17 +43,13 @@ describe('Curve-25519 circuits', function test() {
       const Q = P
       const expected = base.add(base)
 
-      const witness = await pointAdditionCircuit.calculateWitness({
+      const witness = await circuit.calculateWitness({
         P: chunk(P),
         Q: chunk(Q),
       })
 
       // Get all 12 output values of the chunked point
-      const result = await getChunkedPointSignal(
-        pointAdditionCircuit,
-        witness,
-        'R'
-      )
+      const result = await getChunkedPointSignal(circuit, witness, 'R')
 
       // Reconstruct the coordinates from 85-bit chunks
       const dechunkedResult: XYZTPoint = dechunk(result)
@@ -70,7 +66,7 @@ describe('Curve-25519 circuits', function test() {
 
   describe('Scalar multiplication', () => {
     it.skip('should multiply a point by a scalar', async () => {
-      const scalarMultiplicationCircuit: WitnessTester<['P', 'scalar'], ['R']> =
+      const circuit: WitnessTester<['P', 'scalar'], ['R']> =
         await circomkit.WitnessTester('ScalarMultiplication', {
           file: './ed25519/scalar-multiplication',
           template: 'ScalarMul',
@@ -87,7 +83,7 @@ describe('Curve-25519 circuits', function test() {
       // Convert point to array of bits
       const chunkedP = chunk(P)
 
-      const witness = await scalarMultiplicationCircuit.calculateWitness({
+      const witness = await circuit.calculateWitness({
         P: chunkedP,
         scalar: scalar,
       })
