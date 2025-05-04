@@ -77,7 +77,7 @@ template BitElementMulAny() {
 }
 
 template ScalarMul(){
-    signal input s[255];
+    signal input scalar[255];
     signal input P[4][3];
     signal output sP[4][3];
 
@@ -98,7 +98,7 @@ template ScalarMul(){
         bits[0].addIn[2][i] <== P[2][i];
         bits[0].addIn[3][i] <== P[3][i];
     }
-    bits[0].sel <== s[1];
+    bits[0].sel <== scalar[1];
 
     for(i=1;i<254;i++){
         bits[i] = BitElementMulAny();
@@ -114,7 +114,7 @@ template ScalarMul(){
             bits[i-1].addOut[3][j] ==> bits[i].addIn[3][j];
         }
 
-        s[i+1] ==> bits[i].sel;
+        scalar[i+1] ==> bits[i].sel;
     }
 
     var prime_p[3] = [38685626227668133590597613, 38685626227668133590597631, 38685626227668133590597631];
@@ -141,7 +141,7 @@ template ScalarMul(){
         finaladder.Q[3][i] <== sub_t.out[i];
     }
     component lastSel = Multiplexor2();
-    s[0] ==> lastSel.sel;
+    scalar[0] ==> lastSel.sel;
     
     for(i=0;i<3;i++){
         finaladder.R[0][i] ==> lastSel.in[0][0][i]; 

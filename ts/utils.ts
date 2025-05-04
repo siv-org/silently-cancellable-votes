@@ -22,21 +22,16 @@ export const circomkit = new Circomkit({
 
 // Helper functions to extract signals from witnesses
 
-/** Get a signal from the circuit
- * @param circuit - the circuit object
- * @param witness - the witness
- * @param name - the name of the signal
- * @returns the signal value
- */
+/** Get a signal from the circuit */
 export const getSignal = async (
   tester: WitnessTester,
   witness: bigint[],
-  name: string
+  outputSignalName: string
 ): Promise<unknown> => {
   const prefix = 'main'
   // E.g. the full name of the signal "root" is "main.root"
   // You can look up the signal names using `circuit.getDecoratedOutput(witness))`
-  const signalFullName = `${prefix}.${name}`
+  const signalFullName = `${prefix}.${outputSignalName}`
 
   const out = await tester.readWitness(witness, [signalFullName])
   return out[signalFullName]
@@ -45,13 +40,13 @@ export const getSignal = async (
 /** Get a ChunkedPoint signal from the circuit
  * @param tester - the circuit tester
  * @param witness - the witness
- * @param name - the base name of the signal (e.g., 'R' for 'R[0][0]')
+ * @param outputSignalName - the base name of the signal (e.g., 'R' for 'R[0][0]')
  * @returns the signal values as a ChunkedPoint (4 coordinates, each split into 3 85-bit chunks)
  */
 export const getChunkedPointSignal = async (
   tester: WitnessTester,
   witness: bigint[],
-  name: string
+  outputSignalName: string
 ): Promise<ChunkedPoint> => {
   const [rows, cols] = [4, 3]
   const result: bigint[][] = Array(rows)
@@ -60,7 +55,7 @@ export const getChunkedPointSignal = async (
 
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
-      const signalName = `${name}[${i}][${j}]`
+      const signalName = `${outputSignalName}[${i}][${j}]`
       const value = await getSignal(tester, witness, signalName)
       result[i][j] = BigInt(String(value))
     }
@@ -123,3 +118,12 @@ export const xyztObjToArray = (xyztObj: {
   z: bigint
   t: bigint
 }): XYZTPoint => [xyztObj.x, xyztObj.y, xyztObj.z, xyztObj.t]
+
+/** Convert a bigint into an array of 255 bits */
+export const bigintTo255Bits = (n: bigint): bigint[] => {
+  const bits: bigint[] = []
+  for (let i = 0; i < 255; i++) {
+    bits.push((n >> BigInt(i)) & 1n)
+  }
+  return bits
+}

@@ -8,6 +8,7 @@ import {
   chunk,
   dechunk,
   xyztObjToArray,
+  bigintTo255Bits,
 } from '../utils.ts'
 
 describe('Basic multiplier (example)', function test() {
@@ -62,7 +63,7 @@ describe('Curve-25519 circuits', function test() {
   describe('Scalar multiplication', function () {
     this.timeout(100_000)
     it('should multiply a point by a scalar', async () => {
-      const circuit: WitnessTester<['P', 'scalar'], ['R']> =
+      const circuit: WitnessTester<['P', 'scalar'], ['sP']> =
         await circomkit.WitnessTester('ScalarMultiplication', {
           file: './ed25519/scalar-multiplication',
           template: 'ScalarMul',
@@ -80,12 +81,12 @@ describe('Curve-25519 circuits', function test() {
       const chunkedP = chunk(P)
 
       const witness = await circuit.calculateWitness({
+        scalar: bigintTo255Bits(scalar),
         P: chunkedP,
-        scalar,
       })
 
       // Get all 12 output values of the chunked point
-      const result = await getChunkedPointSignal(circuit, witness, 'R')
+      const result = await getChunkedPointSignal(circuit, witness, 'sP')
 
       // Reconstruct the coordinates from 85-bit chunks
       const dechunkedResult = dechunk(result)
