@@ -45,7 +45,9 @@ export function dechunkIntoBigInt(x: Binary[], mod = BigInt(2 ** 51)) {
   return sum
 }
 
-/** [bigint, bigint, bigint, bigint] => [binary[], binary[], binary[], binary[]] */
+/** Convert ExtendedPoints (XYZTPoint) to arrays of bits
+ *
+ * [bigint, bigint, bigint, bigint] => [binary[], binary[], binary[], binary[]] */
 export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   const chunked = new Array(4)
   for (let i = 0; i < 4; i++) {

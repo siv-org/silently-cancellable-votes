@@ -38,13 +38,9 @@ describe('Curve-25519 circuits', function test() {
       const Q = P
       const expected = base.add(base)
 
-      // Convert ExtendedPoints to array of bits
-      const chunkedP = chunk(P)
-      const chunkedQ = chunk(Q)
-
       const witness = await pointAdditionCircuit.calculateWitness({
-        P: chunkedP,
-        Q: chunkedQ,
+        P: chunk(P),
+        Q: chunk(Q),
       })
 
       // Get all 12 output values (4 coordinates × 3 chunks each)
