@@ -1,8 +1,6 @@
 import { Circomkit, type WitnessTester, type CircomkitConfig } from 'circomkit'
-
 import fs from 'fs'
 import path from 'path'
-import { type ChunkedPoint } from '../circuits/ed25519/utils.ts'
 
 const configFilePath = path.resolve('circomkit.json')
 const config = JSON.parse(
@@ -13,22 +11,6 @@ export const circomkit = new Circomkit({
   ...config,
   verbose: false,
 })
-
-/**
- * Convert a string to a bigint
- * @param s - the string to convert
- * @returns the bigint representation of the string
- */
-export const str2BigInt = (s: string): bigint =>
-  BigInt(parseInt(Buffer.from(s).toString('hex'), 16))
-
-/**
- * Generate a random number within a certain threshold
- * @param upper - the upper bound
- * @returns the random index
- */
-export const generateRandomIndex = (upper: number): number =>
-  Math.floor(Math.random() * (upper - 1))
 
 /** Get a signal from the circuit
  * @param circuit - the circuit object
@@ -49,6 +31,59 @@ export const getSignal = async (
   const out = await tester.readWitness(witness, [signalFullName])
   return out[signalFullName]
 }
+
+export type XYZTPoint = [bigint, bigint, bigint, bigint]
+
+/** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
+type Chunk = [bigint, bigint, bigint]
+
+/** 4 chunks, corresponding to XYZT coordinates */
+export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
+
+function padWithZeroes(array: bigint[], targetLength: number) {
+  const total = targetLength - array.length
+  for (let i = 0; i < total; i++) {
+    array.push(0n)
+  }
+  return array
+}
+
+/** Give the right modulus as expected */
+export function modulus(num: bigint, p: bigint) {
+  return ((num % p) + p) % p
+}
+
+/** Convert a bigInt into the chucks of Integers */
+export function chunkBigInt(n: bigint): bigint[] {
+  const mod = BigInt(2 ** 85)
+  if (!n) return [0n]
+  const arr = []
+  while (n) {
+    arr.push(BigInt(modulus(n, mod)))
+    n /= mod
+  }
+  return arr
+}
+
+/** Convert ExtendedPoints (XYZTPoint) to arrays of 85-bit chunks
+ *
+ * [bigint, bigint, bigint, bigint] => [bigint[3], bigint[3], bigint[3], bigint[3]] */
+export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
+  const chunked = new Array(4)
+  for (let i = 0; i < 4; i++) {
+    chunked[i] = chunkBigInt(xyztPoint[i])
+  }
+  for (let i = 0; i < 4; i++) {
+    padWithZeroes(chunked[i], 3)
+  }
+  return chunked as ChunkedPoint
+}
+
+/** Convert 85-bit chunks back to XYZTPoint */
+export const dechunk = (chunked: ChunkedPoint): XYZTPoint =>
+  chunked.map(
+    (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
+  ) as XYZTPoint
 
 /** Get a ChunkedPoint signal from the circuit
  * @param tester - the circuit tester

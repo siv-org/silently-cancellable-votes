@@ -1,9 +1,14 @@
 import { type WitnessTester } from 'circomkit'
-
-import { circomkit, getSignal, getChunkedPointSignal } from '../utils.ts'
 import { expect } from 'chai'
 import * as ed from '@noble/ed25519'
-import { chunk, dechunk, type XYZTPoint } from '../../circuits/ed25519/utils.ts'
+import {
+  circomkit,
+  getSignal,
+  getChunkedPointSignal,
+  chunk,
+  dechunk,
+  type XYZTPoint,
+} from '../utils.ts'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
