@@ -13,7 +13,7 @@ import {
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
     const multiplierCircuit: WitnessTester<['a', 'b'], ['c']> =
-      await circomkit.WitnessTester('Multiplier', {
+      await circomkit.WitnessTester('MultiplierDemo', {
         file: './multiplier-demo',
         template: 'MultiplierDemo',
         params: [],
