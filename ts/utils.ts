@@ -49,15 +49,25 @@ export const getChunkedPointSignal = async (
   outputSignalName: string
 ): Promise<ChunkedPoint> => {
   const [rows, cols] = [4, 3]
-  const result: bigint[][] = Array(rows)
-    .fill(null)
-    .map(() => [])
 
+  // Build array of all signal names
+  const signalNames = []
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
-      const signalName = `${outputSignalName}[${i}][${j}]`
-      const value = await getSignal(tester, witness, signalName)
-      result[i][j] = BigInt(String(value))
+      signalNames.push(`main.${outputSignalName}[${i}][${j}]`)
+    }
+  }
+
+  // Read all signals in one call
+  const values = await tester.readWitness(witness, signalNames)
+
+  // Process results back into 2d array
+  const result: bigint[][] = []
+  for (let i = 0; i < rows; i++) {
+    result[i] = []
+    for (let j = 0; j < cols; j++) {
+      const signalName = `main.${outputSignalName}[${i}][${j}]`
+      result[i][j] = BigInt(String(values[signalName]))
     }
   }
 
