@@ -17,7 +17,6 @@ describe('Basic multiplier (example)', function test() {
       await circomkit.WitnessTester('MultiplierDemo', {
         file: './multiplier-demo',
         template: 'MultiplierDemo',
-        params: [],
       })
 
     const a = BigInt(2)
@@ -35,7 +34,6 @@ describe('Curve-25519 circuits', function test() {
         await circomkit.WitnessTester('PointAddition', {
           file: './ed25519/point-addition',
           template: 'PointAdd',
-          params: [],
         })
 
       // Try adding the base point to itself
@@ -64,10 +62,10 @@ describe('Curve-25519 circuits', function test() {
     this.timeout(100_000)
     it('should multiply a point by a scalar', async () => {
       const circuit: WitnessTester<['P', 'scalar'], ['sP']> =
-        await circomkit.WitnessTester('ScalarMultiplication', {
+        await circomkit.WitnessTester('ScalarMul', {
           file: './ed25519/scalar-multiplication',
           template: 'ScalarMul',
-          params: [],
+          recompile: false, // See https://github.com/erhant/circomkit/issues/26#issuecomment-2849738230
         })
 
       const base = ed.ExtendedPoint.BASE
