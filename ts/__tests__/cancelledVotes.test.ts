@@ -9,7 +9,13 @@ import {
   dechunk,
   xyztObjToArray,
   bigintTo255Bits,
+  padWithZeroes,
+  chunkBigInt,
+  modulus,
+  type ChunkedPoint,
+  type Chunk,
 } from '../utils.ts'
+import * as utils from '../../circuits/ed25519/utils-js.js'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
@@ -60,7 +66,67 @@ describe('Curve-25519 circuits', function test() {
 
   describe('Scalar multiplication', function () {
     this.timeout(100_000)
-    it('should multiply a point by a scalar', async () => {
+
+    it('should multiply them correctly', async () => {
+      const cir: WitnessTester<['P', 'scalar'], ['sP']> =
+        await circomkit.WitnessTester('ScalarMul', {
+          file: './ed25519/scalar-multiplication',
+          template: 'ScalarMul',
+          recompile: false, // See https://github.com/erhant/circomkit/issues/26#issuecomment-2849738230
+        })
+      // const cir = await wasmTester(
+      //   path.join(__dirname, 'circuits', 'scalarmul.circom')
+      // )
+      const p = BigInt(2 ** 255) - BigInt(19)
+      const s =
+        4869643893319708471955165214975585939793846505679808910535986866633137979160n
+      const P = [
+        15112221349535400772501151409588531511454012693041857206046113283949847762202n,
+        46316835694926478169428394003475163141307993866256225615783033603165251855960n,
+        1n,
+        46827403850823179245072216630277197565144205554125654976674165829533817101731n,
+      ]
+      const buf = utils.bigIntToLEBuffer(s)
+      const asBits = padWithZeroes(utils.buffer2bits(buf), 255)
+      asBits.pop()
+      const chunkP = []
+      for (let i = 0; i < 4; i++) {
+        chunkP.push(chunkBigInt(P[i]))
+      }
+      for (let i = 0; i < 4; i++) {
+        padWithZeroes(chunkP[i], 3)
+      }
+      const witness = await cir.calculateWitness({ scalar: asBits, P: chunkP })
+      const res = utils.point_mul(s, P)
+      for (let i = 0; i < 4; i++) {
+        res[i] = modulus(res[i], p)
+      }
+      // console.log('witness', witness)
+      const wt = witness.slice(1, 13)
+      console.log('wt', wt)
+      const chunkedWt: ChunkedPoint = new Array(4).fill([]) as ChunkedPoint
+      for (let i = 0; i < 4; i++) {
+        chunkedWt[i] = wt.slice(3 * i, 3 * i + 3) as Chunk
+      }
+      // const dechunkedWt = []
+      // for (let i = 0; i < 4; i++) {
+      //   dechunkedWt.push(dechunk(chunked[i], BigInt(2 ** 85)))
+      // }
+      const dechunkedWt = dechunk(chunkedWt)
+
+      const base = ed.ExtendedPoint.BASE
+      const PNoble = xyztObjToArray(base)
+      // console.log('PNoble', PNoble)
+      expect(PNoble).to.deep.equal(P)
+      const nobleExpected = base.multiply(s)
+      console.log('nobleExpected', nobleExpected)
+
+      expect(dechunkedWt).to.deep.equal(res)
+
+      // assert.ok(utils.point_equal(res, dechunkedWt))
+    })
+
+    it.skip('should multiply a point by a scalar', async () => {
       const circuit: WitnessTester<['P', 'scalar'], ['sP']> =
         await circomkit.WitnessTester('ScalarMul', {
           file: './ed25519/scalar-multiplication',
@@ -70,7 +136,9 @@ describe('Curve-25519 circuits', function test() {
 
       const base = ed.ExtendedPoint.BASE
       const P = xyztObjToArray(base)
-      const scalar = BigInt(3) // Start with simple case: tripling a point
+      // const scalar = BigInt(2) // Start with simple case: tripling a point
+      const scalar =
+        4869643893319708471955165214975585939793846505679808910535986866633137979160n
 
       // Get expected result using noble-ed25519
       const expected = base.multiply(scalar)
@@ -78,13 +146,21 @@ describe('Curve-25519 circuits', function test() {
       // Convert point to array of bits
       const chunkedP = chunk(P)
 
+      // const CALC_WIT = '     ⏱️  calculateWitness()'
+      // console.time(CALC_WIT)
       const witness = await circuit.calculateWitness({
         scalar: bigintTo255Bits(scalar),
         P: chunkedP,
       })
+      // console.timeEnd(CALC_WIT)
 
       // Get all 12 output values of the chunked point
+      // const GET_CHUNKED = '     ⏱️  getSignals()'
+      // console.time(GET_CHUNKED)
       const result = await getChunkedPointSignal(circuit, witness, 'sP')
+      // console.timeEnd(GET_CHUNKED)
+
+      // return
 
       // Reconstruct the coordinates from 85-bit chunks
       const dechunkedResult = dechunk(result)

@@ -5,7 +5,7 @@ import path from 'path'
 type XYZTPoint = [bigint, bigint, bigint, bigint]
 
 /** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
-type Chunk = [bigint, bigint, bigint]
+export type Chunk = [bigint, bigint, bigint]
 
 /** 4 chunks, corresponding to XYZT coordinates */
 export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
@@ -76,7 +76,7 @@ export const getChunkedPointSignal = async (
 
 // Helper functions to convert between XYZTPoints and ChunkedPoints
 
-function padWithZeroes(array: bigint[], targetLength: number) {
+export function padWithZeroes(array: bigint[], targetLength: number) {
   const total = targetLength - array.length
   for (let i = 0; i < total; i++) {
     array.push(0n)

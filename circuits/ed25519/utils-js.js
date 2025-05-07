@@ -61,6 +61,11 @@ function point_add(P, Q) {
   return [E * F, G * H, F * G, E * H]
 }
 
+/** Duplicate — we already have this in utils.ts */
+function modulus(num, p) {
+  return ((num % p) + p) % p
+}
+
 /** This function will give the point multiplication on EC 25519 */
 function point_mul(s, P) {
   let Q = [0n, 1n, 1n, 0n]
