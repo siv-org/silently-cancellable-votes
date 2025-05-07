@@ -112,8 +112,9 @@ circom function generate_proof_of_secret_sum(
 
 - [ ] RP.fromHex()
 - [ ] decode()
-- [ ] RP.add()
-- [ ] RP.multiply()
+- [x] Curve25519.add()
+- [x] Curve25519.multiply()
+- [ ] Check for cofactor-8 groups
 - [x] assert ... in
   - Use Poseidon hash— ZK Friendly hash.
   - For inclusion proof.
