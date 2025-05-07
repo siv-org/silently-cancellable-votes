@@ -84,10 +84,16 @@ export function padWithZeroes(array: bigint[], targetLength: number) {
   return array
 }
 
+const P = BigInt(
+  '0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed'
+) // 2^255 - 19
+
 /** Give the right modulus as expected */
-export function modulus(num: bigint, p: bigint) {
-  return ((num % p) + p) % p
+export function modulus(num: bigint, p = P) {
+  const result = num % p
+  return result >= 0n ? result : result + p
 }
+const mod = modulus
 
 /** Convert a bigInt into the chucks of Integers */
 export function chunkBigInt(n: bigint): bigint[] {
@@ -136,4 +142,27 @@ export const bigintTo255Bits = (n: bigint): bigint[] => {
     bits.push((n >> BigInt(i)) & 1n)
   }
   return bits
+}
+
+function modInv(a: bigint, m = P): bigint {
+  // Fermat's little theorem: a^(p-2) mod p
+  return modExp(a, m - 2n, m)
+}
+
+function modExp(base: bigint, exponent: bigint, modulus: bigint): bigint {
+  let result = 1n
+  base = mod(base, modulus)
+  while (exponent > 0n) {
+    if (exponent % 2n === 1n) result = mod(result * base, modulus)
+    base = mod(base * base, modulus)
+    exponent /= 2n
+  }
+  return result
+}
+
+export function extendedToAffine([X, Y, Z]: XYZTPoint) {
+  const zInv = modInv(Z)
+  const x = mod(X * zInv)
+  const y = mod(Y * zInv)
+  return { x, y }
 }
