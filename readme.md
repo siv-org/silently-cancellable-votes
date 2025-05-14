@@ -57,17 +57,17 @@ circom function generate_proof_of_secret_sum(
     public election_public_key, // { recipient: hex_string }
     private votes_to_secretly_cancel, // { plaintext: string like '4444-4444-4444:washington', encoded: hex_string, randomizer: bigint_string }[]
     public hashes_of_votes_to_cancel, // hash_string[]
-    private admin_key, // bigint
-    public hash_of_admin_key // string
+    private admin_secret_salt, // bigint
+    public hash_of_admin_secret_salt // string
 ) {
     let recalculated_sum = {}
 
     // Prep for elliptic curve math
     let recipient = RP.fromHex(election_public_key.recipient)
 
-    // Prove admin secret key still hashes to a consistent value across batches
+    // Prove admin_secret_salt still hashes to a consistent value across batches
     // To prevent re-using votes multiple times
-    assert hash(admin_key) === hash_of_admin_key
+    assert hash(admin_secret_salt) === hash_of_admin_secret_salt
 
     // For each item in votes_to_secretly_sum,
     for (vote in votes_to_secretly_sum) {
@@ -82,7 +82,7 @@ circom function generate_proof_of_secret_sum(
 
         // Confirm it does in fact hash into the input_hash
         // These hashes can be confirmed unique outside the circuit
-        assert hashes_of_votes_to_cancel[i] === hash(vote.randomizer, vote.encoded, admin_private_key)
+        assert hashes_of_votes_to_cancel[i] === hash(vote.randomizer, vote.encoded, admin_secret_salt)
 
         // Then we recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
         // Encrypted = Encoded + (Recipient * randomizer)
