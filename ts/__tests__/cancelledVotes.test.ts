@@ -17,6 +17,7 @@ import {
   extendedToAffine,
 } from '../utils.ts'
 import * as utils from '../../circuits/ed25519/utils-js.js'
+import { stringToPoint } from '../curve.ts'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
@@ -127,8 +128,8 @@ describe('Curve-25519 circuits', function test() {
       const PNoble = xyztObjToArray(base)
       // console.log('PNoble', PNoble)
       expect(PNoble).to.deep.equal(P)
-      const nobleExpected = base.multiply(s)
-      const nobleExpectedUnsafe = base.multiplyUnsafe(s)
+      // const nobleExpected = base.multiply(s)
+      // const nobleExpectedUnsafe = base.multiplyUnsafe(s)
       console.log('dechunkedWt', dechunkedWt)
       console.log('utils-js expected', res)
 
@@ -182,6 +183,36 @@ describe('Curve-25519 circuits', function test() {
       // expect(dechunkedResult).to.deep.equal(xyztObjToArray(nobleExpected.toAffine()))
     })
   })
+})
+
+describe('Encoding votes', function () {
+  it('we can convert strings to scalars and back', async () => {
+    const sampleVote = '4444-4444-4444:washington'
+    const encoded = new TextEncoder().encode(sampleVote)
+    // console.log('encoded', encoded)
+    const decoded = new TextDecoder().decode(encoded)
+    expect(decoded).to.equal(sampleVote)
+
+    // TODO: we can do this in a circuit as well and get the same results.
+  })
+
+  it('should encode votes to Ristretto points and extract back out', async () => {
+    const votePlaintext = '4444-4444-4444:washington'
+    const encoded = stringToPoint(votePlaintext)
+    // console.log('encoded', encoded.toHex())
+    expect(
+      encoded
+        .toHex()
+        .startsWith('32343434342d343434342d343434343a77617368696e67746f6e')
+    ).to.be.true
+
+    // TODO: test extract() returns original plaintext
+
+    // TODO: we can replicate extract() within a circuit, and get the same results
+    // (we only need extract(), not stringToPoint() within a circuit, which would be very hard any way, since it's non-deterministic)
+  })
+
+  it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
 })
 
 /* More tests TODO:
