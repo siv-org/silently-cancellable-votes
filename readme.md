@@ -53,7 +53,7 @@ Fundamentally, the admin is proving in zero-knowledge that:
 ```ts
 circom function generate_proof_of_secret_sum(
     public all_encrypted_votes, // { encrypted: hex_string, lock: hex_string }[]
-    public claimed_sum_of_cancelled_votes_subset, // grouped sum, like { washington: integer, arnold: integer }
+    public claimed_sum_of_cancelled_votes_subset, // grouped sum, like [['washington', integer], ['arnold', integer]]
     public election_public_key, // { recipient: hex_string }
     private votes_to_secretly_cancel, // { plaintext: string like '4444-4444-4444:washington', encoded: hex_string, randomizer: bigint_string }[]
     public hashes_of_votes_to_cancel, // hash_string[]
@@ -69,8 +69,8 @@ circom function generate_proof_of_secret_sum(
     // To prevent re-using votes multiple times
     assert hash(admin_secret_salt) === hash_of_admin_secret_salt
 
-    // For each item in votes_to_secretly_sum,
-    for (vote in votes_to_secretly_sum) {
+    // For each item in votes_to_secretly_cancel:
+    for (vote in votes_to_secretly_cancel) {
 
         // First, the admin proves each private vote
         // corresponds to one of the public encrypted votes
@@ -78,7 +78,7 @@ circom function generate_proof_of_secret_sum(
         // Confirm the provided encoded point
         // does in fact map to the plaintext
         let encoded = RP.fromHex(vote.encoded)
-        assert decode(encoded) === vote.plaintext
+        assert extract(encoded) === vote.plaintext
 
         // Confirm it does in fact hash into the input_hash
         // These hashes can be confirmed unique outside the circuit
@@ -111,7 +111,7 @@ circom function generate_proof_of_secret_sum(
 (RP = Ristretto Point. Our current js implementation is coming from https://github.com/paulmillr/noble-ed25519 v1)
 
 - [ ] RP.fromHex()
-- [ ] decode()
+- [ ] decode() bits from Ristretto
 - [x] Curve25519.add()
 - [x] Curve25519.multiply()
 - [ ] Check for cofactor-8 groups
