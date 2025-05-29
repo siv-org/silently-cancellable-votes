@@ -19,7 +19,7 @@ template ExtractStringFromPoint() {
     component unpack = Num2Bits(8);
     unpack.in <== byte0;
 
-    signal length;
+    signal output length;
     signal partials[7];
     // shift right by 1, drop bit 0
     for (var i = 1; i < 8; i++) {
@@ -30,20 +30,9 @@ template ExtractStringFromPoint() {
     // Emit string values
     component isLts[maxLength];
     for (var i = 0; i < maxLength; i++) {
-        isLts[i] = ConstantLessThan(5, i); // declare outside loop body
-        isLts[i].in <== length;
-
+        isLts[i] = LessThan(5);
+        isLts[i].in[0] <== i;
+        isLts[i].in[1] <== length;
         stringAsIntegers[i] <== isLts[i].out * pointAsBytes[i + 1];
     }
-}
-
-template ConstantLessThan(nBits, k) {
-    signal input in;
-    signal output out;
-
-    component cmp = LessThan(nBits);
-    cmp.in[0] <== in;
-    cmp.in[1] <== k;
-
-    out <== cmp.out;
 }

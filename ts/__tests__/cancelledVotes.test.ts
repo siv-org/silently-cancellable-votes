@@ -113,7 +113,7 @@ describe('Encoding votes', function () {
     expect(decoded).to.equal(sampleVote)
   })
 
-  it('can encode votes to Ristretto points and extract back out', async () => {
+  it('can encode votes to Ristretto points and extract back out, even from circuit', async () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
     // console.log('encoded', encoded.toHex())
@@ -123,26 +123,31 @@ describe('Encoding votes', function () {
         .startsWith('32343434342d343434342d343434343a77617368696e67746f6e')
     ).to.be.true
 
-    // extract() returns original plaintext
+    // JS pointToString() returns original plaintext
     expect(pointToString(encoded)).to.equal(votePlaintext)
 
-    // We can extract() the plaintext from within a circuit, and get the same results
+    // We can also extract() the plaintext from within a circuit, and get the same results
     const pointAsBytes = [...encoded.toRawBytes()]
-    console.log('pointAsBytes', pointAsBytes)
+    // console.log({ pointAsBytes })
+
     const circuit = await circomkit.WitnessTester('ExtractStringFromPoint', {
       file: './extract_string_from_point',
       template: 'ExtractStringFromPoint',
-      // recompile: false,
+      recompile: false,
     })
     const witness = await circuit.calculateWitness({ pointAsBytes })
-    const result = await getVectorSignal(
-      circuit,
-      witness,
-      'stringAsIntegers',
-      31
+    const length = Number(await getSignal(circuit, witness, 'length'))
+    // Was the circuit able to extract the string's bytes?
+    const extracted = (
+      await getVectorSignal(circuit, witness, 'stringAsIntegers', 31)
     )
-    console.log('result', result)
-    expect(result).to.equal(votePlaintext)
+      .slice(0, length)
+      .map((x) => Number(x))
+    // Convert bytes back into ASCII, to compare to original input
+    const extractedString = new TextDecoder().decode(Uint8Array.from(extracted))
+    // console.log({ extractedString })
+
+    expect(extractedString).to.equal(votePlaintext)
   })
 
   it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
