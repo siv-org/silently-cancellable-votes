@@ -74,6 +74,31 @@ export const getChunkedPointSignal = async (
   return result as ChunkedPoint
 }
 
+export const getVectorSignal = async (
+  tester: WitnessTester,
+  witness: bigint[],
+  outputSignalName: string,
+  length: number
+): Promise<bigint[]> => {
+  // Build array of all signal names
+  const signalNames = []
+  for (let i = 0; i < length; i++) {
+    signalNames.push(`main.${outputSignalName}[${i}]`)
+  }
+
+  // Read all signals in one call
+  const values = await tester.readWitness(witness, signalNames)
+
+  // Process results back into 2d array
+  const result: bigint[] = []
+  for (let i = 0; i < length; i++) {
+    const signalName = `main.${outputSignalName}[${i}]`
+    result[i] = BigInt(String(values[signalName]))
+  }
+
+  return result
+}
+
 // Helper functions to convert between XYZTPoints and ChunkedPoints
 
 export function padWithZeroes(array: bigint[], targetLength: number) {

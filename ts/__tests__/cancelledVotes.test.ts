@@ -10,6 +10,7 @@ import {
   xyztObjToArray,
   bigintTo255Bits,
   extendedToAffine,
+  getVectorSignal,
 } from '../utils.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
 
@@ -29,7 +30,7 @@ describe('Basic multiplier (example)', function test() {
   })
 })
 
-describe.skip('Curve-25519 circuits', function test() {
+describe('Ed25519 circuits', function test() {
   describe('Point addition', () => {
     it('should add a point to itself', async () => {
       const circuit: WitnessTester<['P', 'Q'], ['R']> =
@@ -64,7 +65,7 @@ describe.skip('Curve-25519 circuits', function test() {
     })
   })
 
-  describe('Scalar multiplication', function () {
+  describe.skip('Scalar multiplication', function () {
     this.timeout(100_000)
 
     it('should multiply a point by a scalar', async () => {
@@ -104,17 +105,15 @@ describe.skip('Curve-25519 circuits', function test() {
 })
 
 describe('Encoding votes', function () {
-  it('we can convert strings to scalars and back', async () => {
+  it('can convert strings to scalars and back', async () => {
     const sampleVote = '4444-4444-4444:washington'
     const encoded = new TextEncoder().encode(sampleVote)
     // console.log('encoded', encoded)
     const decoded = new TextDecoder().decode(encoded)
     expect(decoded).to.equal(sampleVote)
-
-    // TODO: we can do this in a circuit as well and get the same results.
   })
 
-  it('should encode votes to Ristretto points and extract back out', async () => {
+  it('can encode votes to Ristretto points and extract back out', async () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
     // console.log('encoded', encoded.toHex())
@@ -127,8 +126,23 @@ describe('Encoding votes', function () {
     // extract() returns original plaintext
     expect(pointToString(encoded)).to.equal(votePlaintext)
 
-    // TODO: we can replicate extract() within a circuit, and get the same results
-    // (we only need extract(), not stringToPoint() within a circuit, which would be very hard any way, since it's non-deterministic)
+    // We can extract() the plaintext from within a circuit, and get the same results
+    const pointAsBytes = [...encoded.toRawBytes()]
+    console.log('pointAsBytes', pointAsBytes)
+    const circuit = await circomkit.WitnessTester('ExtractStringFromPoint', {
+      file: './extract_string_from_point',
+      template: 'ExtractStringFromPoint',
+      // recompile: false,
+    })
+    const witness = await circuit.calculateWitness({ pointAsBytes })
+    const result = await getVectorSignal(
+      circuit,
+      witness,
+      'stringAsIntegers',
+      31
+    )
+    console.log('result', result)
+    expect(result).to.equal(votePlaintext)
   })
 
   it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
