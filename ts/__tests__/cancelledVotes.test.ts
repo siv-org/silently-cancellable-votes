@@ -134,6 +134,38 @@ describe('Encoding votes', function () {
   it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
 })
 
+describe('HashAdminSalt circuit', function () {
+  it('should hash the admin_secret_salt correctly', async () => {
+    const circuit = await circomkit.WitnessTester('HashAdminSalt', {
+      file: './hash_admin_salt',
+      template: 'HashAdminSalt',
+      recompile: false,
+    })
+
+    const admin_secret_salt = 123456789n
+    const expectedHash =
+      7110303097080024260800444665787206606103183587082596139871399733998958991511n
+    const witness = await circuit.calculateWitness({ admin_secret_salt })
+    const hash = await getSignal(circuit, witness, 'hash_of_admin_secret_salt')
+    expect(hash).to.equal(expectedHash)
+
+    // A different salt should produce a different hash
+    const salt2 = 987654321n
+    const expectedHash2 =
+      8358125608916792199567624990380031336399968764944869913697508384993845680707n
+    const witness2 = await circuit.calculateWitness({
+      admin_secret_salt: salt2,
+    })
+    const hash2 = await getSignal(
+      circuit,
+      witness2,
+      'hash_of_admin_secret_salt'
+    )
+    expect(hash2).to.equal(expectedHash2)
+    expect(hash2).to.not.equal(hash)
+  })
+})
+
 /* More tests TODO:
 // Generate Random test cases:
 range(0,10).map(index => {
