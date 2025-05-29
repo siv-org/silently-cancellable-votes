@@ -43,3 +43,16 @@ function embed(data: Uint8Array): RP {
 /** Embed string data into a Ristretto255 point */
 export const stringToPoint = (message: string): RP =>
   embed(new TextEncoder().encode(message))
+
+/** Extract embedded data from a Ristretto255 point */
+function extract(point: RP): Uint8Array {
+  const bytes = point.toRawBytes()
+  const length = bytes[0] >> 1 // Extract length from 1st byte, undoing embed()'s left shift
+  if (length > maxLength)
+    throw new Error(`extract length ${length} > maxLength ${maxLength}`)
+  return bytes.subarray(1, 1 + length)
+}
+
+/** Extract string data from a Ristretto255 point */
+export const pointToString = (point: RP): string =>
+  new TextDecoder().decode(extract(point))
