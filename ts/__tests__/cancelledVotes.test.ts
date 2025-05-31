@@ -1,5 +1,5 @@
 import { type WitnessTester } from 'circomkit'
-import { expect } from 'chai'
+import { describe, it, expect } from 'bun:test'
 import * as ed from '@noble/ed25519'
 import {
   circomkit,
@@ -26,7 +26,7 @@ describe('Basic multiplier (example)', function test() {
     const b = BigInt(3)
     const c = await circuit.calculateWitness({ a, b })
     const result = await getSignal(circuit, c, 'c')
-    expect(result).to.equal(a * b)
+    expect(result).toBe(a * b)
   })
 })
 
@@ -56,18 +56,14 @@ describe('Ed25519 circuits', function test() {
       // Reconstruct the coordinates from 85-bit chunks
       const dechunkedResult = dechunk(result)
       // Compare with expected values directly
-      expect(dechunkedResult).to.deep.equal(xyztObjToArray(expected))
+      expect(dechunkedResult).toEqual(xyztObjToArray(expected))
 
       // We'll also double with noble to check the results
-      expect(base.multiply(2n).toAffine()).to.deep.equal(
-        base.add(base).toAffine()
-      )
+      expect(base.multiply(2n).toAffine()).toEqual(base.add(base).toAffine())
     })
   })
 
   describe.skip('Scalar multiplication', function () {
-    this.timeout(100_000)
-
     it('should multiply a point by a scalar', async () => {
       const circuit: WitnessTester<['P', 'scalar'], ['sP']> =
         await circomkit.WitnessTester('ScalarMul', {
@@ -97,7 +93,7 @@ describe('Ed25519 circuits', function test() {
       // Reconstruct the coordinates from 85-bit chunks
       const dechunkedResult = dechunk(result)
 
-      expect(extendedToAffine(dechunkedResult)).to.deep.equal(
+      expect(extendedToAffine(dechunkedResult)).toEqual(
         nobleExpected.toAffine()
       )
     })
@@ -110,21 +106,19 @@ describe('Encoding votes', function () {
     const encoded = new TextEncoder().encode(sampleVote)
     // console.log('encoded', encoded)
     const decoded = new TextDecoder().decode(encoded)
-    expect(decoded).to.equal(sampleVote)
+    expect(decoded).toBe(sampleVote)
   })
 
   it('can encode votes to Ristretto points and extract back out, even from circuit', async () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
     // console.log('encoded', encoded.toHex())
-    expect(
-      encoded
-        .toHex()
-        .startsWith('32343434342d343434342d343434343a77617368696e67746f6e')
-    ).to.be.true
+    expect(encoded.toHex()).toStartWith(
+      '32343434342d343434342d343434343a77617368696e67746f6e'
+    )
 
     // JS pointToString() returns original plaintext
-    expect(pointToString(encoded)).to.equal(votePlaintext)
+    expect(pointToString(encoded)).toBe(votePlaintext)
 
     // We can also extract() the plaintext from within a circuit, and get the same results
     const pointAsBytes = [...encoded.toRawBytes()]
@@ -147,7 +141,7 @@ describe('Encoding votes', function () {
     const extractedString = new TextDecoder().decode(Uint8Array.from(extracted))
     // console.log({ extractedString })
 
-    expect(extractedString).to.equal(votePlaintext)
+    expect(extractedString).toBe(votePlaintext)
   })
 
   it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
@@ -166,7 +160,7 @@ describe('HashAdminSalt circuit', function () {
       7110303097080024260800444665787206606103183587082596139871399733998958991511n
     const witness = await circuit.calculateWitness({ admin_secret_salt })
     const hash = await getSignal(circuit, witness, 'hash_of_admin_secret_salt')
-    expect(hash).to.equal(expectedHash)
+    expect(hash).toBe(expectedHash)
 
     // A different salt should produce a different hash
     const salt2 = 987654321n
@@ -180,8 +174,8 @@ describe('HashAdminSalt circuit', function () {
       witness2,
       'hash_of_admin_secret_salt'
     )
-    expect(hash2).to.equal(expectedHash2)
-    expect(hash2).to.not.equal(hash)
+    expect(hash2).toBe(expectedHash2)
+    expect(hash2).not.toBe(hash)
   })
 })
 

@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "circom:build": "NODE_OPTIONS=--max-old-space-size=4096 circomkit compile",
     "circom:setup": "NODE_OPTIONS=--max-old-space-size=4096 circomkit setup",
-    "test": "NODE_OPTIONS='--max-old-space-size=4096 --experimental-strip-types' mocha ts/__tests__/*.test.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "size": "snarkjs r1cs info build/ExtractStringFromPoint.r1cs"
   },
   "keywords": [],
@@ -24,12 +25,9 @@
     "snarkjs": "^0.7.5"
   },
   "devDependencies": {
-    "@types/chai": "^5.2.1",
-    "@types/mocha": "^10.0.10",
+    "@types/bun": "^1.2.15",
     "@types/node": "^22.14.1",
     "@types/typescript": "^2.0.0",
-    "chai": "^5.2.0",
-    "mocha": "^11.1.0",
     "typescript": "^5.8.3"
   }
 }
