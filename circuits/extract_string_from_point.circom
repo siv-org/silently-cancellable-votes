@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.2.2;
 
 include "comparators.circom";
 
@@ -7,10 +7,11 @@ include "comparators.circom";
 // Since circom doesn't support strings, we represent the string as a series of bytes.
 
 template ExtractStringFromPoint() {
-    var maxLength = 31; // 32 bytes - 1 byte for length
+    var bytesPerPoint = 32;
+    var maxLength = bytesPerPoint - 1; // 1st byte is for length
 
     // Input: serialized point as bytes
-    signal input pointAsBytes[32];
+    signal input pointAsBytes[bytesPerPoint];
 
     // Output: extracted string as individual bytes
     signal output stringAsIntegers[maxLength];
@@ -20,16 +21,20 @@ template ExtractStringFromPoint() {
     signal output length <== shiftedFirstByte;
 
     // Extract the embedded string bytes:
-    // For each possible string byte, output the value if `i < length`, else output 0.
+    // For each possible string byte, output `value` if `i < length`, else output 0.
     // Since the 1st byte was reserved for the length, we use `pointAsBytes[i + 1]`.
-    component isLts[maxLength];
     for (var i = 0; i < maxLength; i++) {
-        isLts[i] = LessThan(5);
-        // if (i < length)
-        isLts[i].in[0] <== i;
-        isLts[i].in[1] <== length;
-        // then { emit byte[i + 1] } else { emit 0 }
-        stringAsIntegers[i] <== isLts[i].out * pointAsBytes[i + 1];
-        // `i + 1` because the first byte is reserved for `length`
+        stringAsIntegers[i] <== EmitIfInRange(5)(i, length, pointAsBytes[i + 1]);
     }
+}
+
+// if (index < range) { emit value } else { emit 0 }
+template EmitIfInRange(n) {
+    signal input index, range, value;
+    signal output out;
+
+    component lt = LessThan(n);
+    lt.in[0] <== index;
+    lt.in[1] <== range;
+    out <== lt.out * value;
 }
