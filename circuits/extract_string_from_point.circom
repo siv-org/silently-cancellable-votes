@@ -38,3 +38,14 @@ template EmitIfInRange(n) {
     lt.in[1] <== range;
     out <== lt.out * value;
 }
+
+
+// > snarkjs r1cs info build/ExtractStringFromPoint.r1cs
+
+// [INFO]  snarkJS: Curve: bn-128
+// [INFO]  snarkJS: # of Wires: 312
+// [INFO]  snarkJS: # of Constraints: 310
+// [INFO]  snarkJS: # of Private Inputs: 32
+// [INFO]  snarkJS: # of Public Inputs: 0
+// [INFO]  snarkJS: # of Labels: 500
+// [INFO]  snarkJS: # of Outputs: 32
