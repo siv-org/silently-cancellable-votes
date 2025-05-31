@@ -10,7 +10,8 @@
     "build": "tsc -p tsconfig.json",
     "circom:build": "NODE_OPTIONS=--max-old-space-size=4096 circomkit compile",
     "circom:setup": "NODE_OPTIONS=--max-old-space-size=4096 circomkit setup",
-    "test": "NODE_OPTIONS='--max-old-space-size=4096 --experimental-strip-types' mocha ts/__tests__/*.test.ts"
+    "test": "NODE_OPTIONS='--max-old-space-size=4096 --experimental-strip-types' mocha ts/__tests__/*.test.ts",
+    "size": "snarkjs r1cs info build/ExtractStringFromPoint.r1cs"
   },
   "keywords": [],
   "author": "",
