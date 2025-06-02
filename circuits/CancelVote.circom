@@ -1,19 +1,21 @@
 pragma circom 2.2.2;
 
 template CancelVote() {
+    var MAX_VOTE_CONTENT_LENGTH = 32 - 1 - 15; // 32 - length_byte - 15_bytes_for_verification_number
+
     // Public inputs
     signal input root_hash_of_all_encrypted_votes; // poseidon hash
     signal input election_public_key; // hex_string.toBytes()
 
     // Private inputs
-    signal encoded_vote_to_secretly_cancel; // bytes[32]
+    signal encoded_vote_to_secretly_cancel[32]; // bytes[32]
     signal secret_randomizer; // bigint
     signal index_of_vote_to_cancel; // integer
-    signal merkle_path_of_cancelled_vote; // hash[]
+    signal merkle_path_of_cancelled_vote[16]; // hash[], tree depth of 16 means up to 2^16 (65k) items per root
     signal admin_secret_salt; // bigint
 
     // Public outputs
-    signal output vote_selection_to_cancel; // array of digits like toDigits('washington') -> [119, 97, 115, 104, 105, 110, 103, 116, 111, 110]
+    signal output vote_selection_to_cancel[MAX_VOTE_CONTENT_LENGTH]; // array of digits like toDigits('washington') -> [119, 97, 115, 104, 105, 110, 103, 116, 111, 110]
     signal output salted_hash_of_vote_to_cancel; // poseidon_hash
     signal output hash_of_admin_secret_salt; // poseidon_hash
 
