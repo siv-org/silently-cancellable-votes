@@ -1,6 +1,6 @@
 pragma circom 2.2.2;
 
-template CancelVote() {
+template SecretlyCancelVote() {
     var MAX_VOTE_CONTENT_LENGTH = 32 - 1 - 15; // 32 - length_byte - 15_bytes_for_verification_number
 
     // Public inputs
