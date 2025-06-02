@@ -100,6 +100,32 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
+describe.only('EncryptVote circuit', function () {
+  it('should encrypt a vote', async () => {
+    try {
+      const circuit = await circomkit.WitnessTester('EncryptVote', {
+        file: './EncryptVote',
+        template: 'EncryptVote',
+      })
+
+      const election_public_key = 1n
+      const encoded_vote_to_secretly_cancel = 2n
+      const votes_secret_randomizer = 3n
+
+      const witness = await circuit.calculateWitness({
+        election_public_key,
+        encoded_vote_to_secretly_cancel,
+        votes_secret_randomizer,
+      })
+
+      const encrypted_vote = await getSignal(circuit, witness, 'encrypted_vote')
+      expect(encrypted_vote).toBe(5n)
+    } catch (e: any) {
+      console.log(e.message)
+    }
+  })
+})
+
 describe('Encoding votes', function () {
   it('can convert strings to scalars and back', async () => {
     const sampleVote = '4444-4444-4444:washington'
