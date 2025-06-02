@@ -14,7 +14,7 @@ template ExtractStringFromPoint() {
     signal input pointAsBytes[bytesPerPoint];
 
     // Output: extracted string as individual bytes
-    signal output stringAsIntegers[maxLength];
+    signal output stringAsBytes[maxLength];
 
     // Extract length from first byte (right shifted by 1)
     signal shiftedFirstByte <-- (pointAsBytes[0] >> 1);
@@ -24,7 +24,7 @@ template ExtractStringFromPoint() {
     // For each possible string byte, output `value` if `i < length`, else output 0.
     // Since the 1st byte was reserved for the length, we use `pointAsBytes[i + 1]`.
     for (var i = 0; i < maxLength; i++) {
-        stringAsIntegers[i] <== EmitIfInRange(5)(i, length, pointAsBytes[i + 1]);
+        stringAsBytes[i] <== EmitIfInRange(5)(i, length, pointAsBytes[i + 1]);
     }
 }
 

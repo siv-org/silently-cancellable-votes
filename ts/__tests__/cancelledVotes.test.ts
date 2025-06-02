@@ -133,7 +133,7 @@ describe('Encoding votes', function () {
     const length = Number(await getSignal(circuit, witness, 'length'))
     // Was the circuit able to extract the string's bytes?
     const extracted = (
-      await getVectorSignal(circuit, witness, 'stringAsIntegers', 31)
+      await getVectorSignal(circuit, witness, 'stringAsBytes', 31)
     )
       .slice(0, length)
       .map((x) => Number(x))
