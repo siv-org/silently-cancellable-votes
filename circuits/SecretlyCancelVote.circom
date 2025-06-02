@@ -5,18 +5,18 @@ template SecretlyCancelVote() {
     var TREE_DEPTH = 16; // 2^16, up to 65k items per root
 
     // Public inputs
-    signal input root_hash_of_all_encrypted_votes; // poseidon hash
-    signal input election_public_key; // hex_string.toBytes()
+    signal input root_hash_of_all_encrypted_votes; // poseidon_hash
+    signal input election_public_key[32]; // RistrettoPoint.toBytes()
 
     // Private inputs
     signal encoded_vote_to_secretly_cancel[32]; // bytes[32]
     signal secret_randomizer; // bigint
     signal index_of_vote_to_cancel; // integer
-    signal merkle_path_of_cancelled_vote[TREE_DEPTH]; // hash[]
+    signal merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
     signal admin_secret_salt; // bigint
 
     // Public outputs
-    signal output vote_selection_to_cancel[MAX_VOTE_CONTENT_LENGTH]; // array of digits like toDigits('washington') -> [119, 97, 115, 104, 105, 110, 103, 116, 111, 110]
+    signal output vote_selection_to_cancel[MAX_VOTE_CONTENT_LENGTH]; // integer[], eg. 'abca' -> [97, 98, 99, 97]
     signal output salted_hash_of_vote_to_cancel; // poseidon_hash
     signal output hash_of_admin_secret_salt; // poseidon_hash
 
