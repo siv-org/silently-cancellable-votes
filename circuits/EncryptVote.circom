@@ -4,13 +4,13 @@ include "ed25519/point-addition.circom";
 include "ed25519/scalar-multiplication.circom";
 
 template EncryptVote() {
-    signal input election_public_key[32]; // aka `recipient`, RistrettoPoint.toBytes()
-    signal input encoded_vote_to_secretly_cancel[32]; // bytes[32]
-    signal input votes_secret_randomizer; // bigint
+    signal input election_public_key[4][3]; // aka `recipient`, chunkedRistrettoPoint
+    signal input encoded_vote_to_secretly_cancel[4][3]; // chunkedRistrettoPoint
+    signal input votes_secret_randomizer[255]; // bitify(bigint)
 
     // We recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
     // Encrypted = Encoded + (Recipient * randomizer)
 
-    signal shared_secret <== ScalarMul()(election_public_key, votes_secret_randomizer);
-    signal output encrypted_vote <== PointAdd()(encoded_vote_to_secretly_cancel, shared_secret);
+    signal shared_secret <== ScalarMul()(votes_secret_randomizer, election_public_key);
+    // signal output encrypted_vote <== PointAdd()(encoded_vote_to_secretly_cancel, shared_secret);
 }

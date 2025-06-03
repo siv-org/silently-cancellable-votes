@@ -103,7 +103,7 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
-describe.skip('EncryptVote circuit', function () {
+describe.only('EncryptVote circuit', function () {
   it('should encrypt a vote', async () => {
     try {
       const circuit = await circomkit.WitnessTester('EncryptVote', {
