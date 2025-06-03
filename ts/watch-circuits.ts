@@ -2,7 +2,7 @@
 //
 // This script watches our .circom files, and checks when their contents change.
 // By importing the resulting circuit-hashes.json file into our tests, watch mode will trigger auto re-runs from updated circuits.
-// (Unfortunately, we can't just watch the .circom files directly, because the test files actually touch them too (during compile), which triggers an infinite loop.)
+// (Unfortunately, we can't just watch the .circom files directly, because the test files actually touch them too (during compile), which triggers an infinite loop. See https://github.com/erhant/circomkit/issues/120)
 
 // Define our circuits to watch
 const files = ['EncryptVote.circom', 'hash_admin_salt.circom'] as const
