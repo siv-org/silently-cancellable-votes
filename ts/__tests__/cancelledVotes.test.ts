@@ -39,6 +39,7 @@ describe('Ed25519 circuits', function test() {
         await circomkit.WitnessTester('PointAddition', {
           file: './ed25519/point-addition',
           template: 'PointAdd',
+          recompile: false,
         })
 
       // Try adding the base point to itself
