@@ -5,7 +5,7 @@
 // (Unfortunately, we can't just watch the .circom files directly, because the test files actually touch them too (during compile), which triggers an infinite loop. See https://github.com/erhant/circomkit/issues/120)
 
 import { createHash } from 'node:crypto'
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import prevHashes from './circuit-hashes.json'
 type HashMap = Record<string, string[]>
 const prev = prevHashes as HashMap
@@ -43,4 +43,16 @@ if (changed.length > 0) {
     } ${changed.join(', ') + RESET}`
   )
   writeFileSync('./ts/circuit-hashes.json', JSON.stringify(hashes, null, 2))
+}
+
+export function shouldRecompile(file: string): boolean {
+  const dot_circom_mtime = new Date(prev[file]?.[1])
+  const compiled_r1cs_mtime = statSync(
+    `./build/${file.replace('.circom', '.r1cs')}`
+  ).mtime
+  const changedSinceCompile = dot_circom_mtime > compiled_r1cs_mtime
+
+  if (changedSinceCompile) console.log('\nRecompiling', YELLOW, file, RESET)
+
+  return changedSinceCompile
 }

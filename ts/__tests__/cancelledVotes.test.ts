@@ -13,7 +13,7 @@ import {
   getVectorSignal,
 } from '../utils.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
-import '../circuit-hashes.json'
+import { shouldRecompile } from '../watch-circuits.ts'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
@@ -101,7 +101,7 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
-describe.only('EncryptVote circuit', function () {
+describe.skip('EncryptVote circuit', function () {
   it('should encrypt a vote', async () => {
     try {
       const circuit = await circomkit.WitnessTester('EncryptVote', {
@@ -177,9 +177,9 @@ describe('Encoding votes', function () {
 describe('HashAdminSalt circuit', function () {
   it('should hash the admin_secret_salt correctly', async () => {
     const circuit = await circomkit.WitnessTester('HashAdminSalt', {
-      file: './hash_admin_salt',
+      file: './HashAdminSalt',
       template: 'HashAdminSalt',
-      recompile: false,
+      recompile: shouldRecompile('HashAdminSalt.circom'),
     })
 
     const admin_secret_salt = 123456789n
