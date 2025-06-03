@@ -19,3 +19,12 @@ template EncryptVote() {
     signal output encrypted_vote[4][3];
     encrypted_vote <== PointAdd()(encoded_vote_to_secretly_cancel, shared_secret);
 }
+
+// npx snarkjs r1cs info build/EncryptVote.r1cs
+// [INFO]  snarkJS: Curve: bn-128
+// [INFO]  snarkJS: # of Wires: 1946468
+// [INFO]  snarkJS: # of Constraints: 1969648
+// [INFO]  snarkJS: # of Private Inputs: 279
+// [INFO]  snarkJS: # of Public Inputs: 0
+// [INFO]  snarkJS: # of Labels: 5578984
+// [INFO]  snarkJS: # of Outputs: 12
