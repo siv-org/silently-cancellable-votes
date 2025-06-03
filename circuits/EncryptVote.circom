@@ -11,7 +11,11 @@ template EncryptVote() {
     // We recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
     // Encrypted = Encoded + (Recipient * randomizer)
 
-    signal output shared_secret[4][3];
+    // First we calc the shared secret: recipient * randomizer
+    signal shared_secret[4][3];
     shared_secret <== ScalarMul()(votes_secret_randomizer, election_public_key);
-    // signal output encrypted_vote <== PointAdd()(encoded_vote_to_secretly_cancel, shared_secret);
+
+    // Then we add the encoded vote to the shared secret
+    signal output encrypted_vote[4][3];
+    encrypted_vote <== PointAdd()(encoded_vote_to_secretly_cancel, shared_secret);
 }

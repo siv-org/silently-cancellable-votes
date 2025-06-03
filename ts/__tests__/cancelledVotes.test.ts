@@ -103,30 +103,70 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
-describe.only('EncryptVote circuit', function () {
-  it('should encrypt a vote', async () => {
-    try {
-      const circuit = await circomkit.WitnessTester('EncryptVote', {
-        file: './EncryptVote',
-        template: 'EncryptVote',
-        recompile: shouldRecompile('EncryptVote.circom'),
-      })
+describe.only('EncryptVote()', function () {
+  it('should get same results encrypting from JS or circuit', async () => {
+    // try {
 
-      const election_public_key = 1n
-      const encoded_vote_to_secretly_cancel = 2n
-      const votes_secret_randomizer = 3n
+    // Create example vote
+    const election_public_key = ed.RistrettoPoint.BASE
+    const plaintext = '4444-4444-4444:arnold'
+    const encoded_vote_to_secretly_cancel = stringToPoint(plaintext)
+    const votes_secret_randomizer = 123456789n
 
-      const witness = await circuit.calculateWitness({
-        election_public_key,
-        encoded_vote_to_secretly_cancel,
-        votes_secret_randomizer,
-      })
+    // First, we'll try to encrypt from within the circuit
 
-      const encrypted_vote = await getSignal(circuit, witness, 'encrypted_vote')
-      expect(encrypted_vote).toBe(5n)
-    } catch (e: any) {
-      console.log(e.message)
-    }
+    // Init circuit
+    const circuit = await circomkit.WitnessTester<
+      [
+        'election_public_key',
+        'encoded_vote_to_secretly_cancel',
+        'votes_secret_randomizer'
+      ],
+      ['shared_secret']
+    >('EncryptVote', {
+      file: './EncryptVote',
+      template: 'EncryptVote',
+      recompile: shouldRecompile('EncryptVote.circom'),
+    })
+
+    // Convert all the inputs to format circuit can accept
+
+    // @ts-expect-error Overriding .ep privatization
+    const election_public_key_ep = election_public_key.ep
+    const chunkedElectionPublicKey = chunk(
+      xyztObjToArray(election_public_key_ep)
+    )
+
+    // @ts-expect-error Overriding .ep privatization
+    const encoded_ep = encoded_vote_to_secretly_cancel.ep
+    const chunkedEncoded = chunk(xyztObjToArray(encoded_ep))
+
+    // Calculate witness
+    const witness = await circuit.calculateWitness({
+      election_public_key: chunkedElectionPublicKey,
+      encoded_vote_to_secretly_cancel: chunkedEncoded,
+      votes_secret_randomizer: bigintTo255Bits(votes_secret_randomizer),
+    })
+
+    // Pull out the encrypted vote, from circuit's output
+    const encrypted_vote = await getChunkedPointSignal(
+      circuit,
+      witness,
+      'encrypted_vote'
+    )
+    const [x, y, z, t] = dechunk(encrypted_vote)
+    const encrypted_ep = new ed.ExtendedPoint(x, y, z, t)
+
+    // Finally, does it match encrypting from JS?
+    const encryptedInJS = encoded_vote_to_secretly_cancel.add(
+      election_public_key.multiply(votes_secret_randomizer)
+    )
+
+    expect(new ed.RistrettoPoint(encrypted_ep).equals(encryptedInJS)).toBeTrue
+
+    // } catch (e: any) {
+    //   console.log('\n❌', e.message)
+    // }
   })
 })
 
