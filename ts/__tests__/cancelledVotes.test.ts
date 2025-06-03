@@ -19,8 +19,9 @@ describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {
     const circuit: WitnessTester<['a', 'b'], ['c']> =
       await circomkit.WitnessTester('MultiplierDemo', {
-        file: './multiplier-demo',
+        file: './MultiplierDemo',
         template: 'MultiplierDemo',
+        recompile: shouldRecompile('MultiplierDemo.circom'),
       })
 
     const a = BigInt(2)
