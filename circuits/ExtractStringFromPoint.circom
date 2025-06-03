@@ -9,7 +9,6 @@ include "comparators.circom";
 template ExtractStringFromPoint() {
     var bytesPerPoint = 32;
     var maxLength = bytesPerPoint - 1; // 1st byte is for length
-
     // Input: serialized point as bytes
     signal input pointAsBytes[bytesPerPoint];
 

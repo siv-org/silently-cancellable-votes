@@ -152,9 +152,9 @@ describe('Encoding votes', function () {
     // console.log({ pointAsBytes })
 
     const circuit = await circomkit.WitnessTester('ExtractStringFromPoint', {
-      file: './extract_string_from_point',
+      file: './ExtractStringFromPoint',
       template: 'ExtractStringFromPoint',
-      recompile: false,
+      recompile: shouldRecompile('ExtractStringFromPoint.circom'),
     })
     const witness = await circuit.calculateWitness({ pointAsBytes })
     const length = Number(await getSignal(circuit, witness, 'length'))
