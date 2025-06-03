@@ -24,23 +24,24 @@ function hashFile(path: string): string {
 }
 
 // Build map of hashes
-let changed = []
+let whichChanged = []
 const hashes: HashMap = {}
 const files = readdirSync('./circuits').filter((f) => f.endsWith('.circom'))
 for (const file of files) {
   const hash = hashFile('./circuits/' + file)
-  if (hash !== prev[file]?.[0]) changed.push(file)
-  hashes[file] = [hash, new Date().toISOString()]
+  const didChange = hash !== prev[file]?.[0]
+  if (didChange) whichChanged.push(file)
+  hashes[file] = [hash, !didChange ? prev[file]?.[1] : new Date().toISOString()]
 }
 
 // Only write to the file if the hashes have changed
-if (changed.length > 0) {
+if (whichChanged.length > 0) {
   console.log(
     `${
       GRAY +
       new Date().toLocaleTimeString().replace(' AM', 'a').replace(' PM', 'p') +
       YELLOW
-    } ${changed.join(', ') + RESET}`
+    } ${whichChanged.join(', ') + RESET}`
   )
   writeFileSync('./ts/circuit-hashes.json', JSON.stringify(hashes, null, 2))
 }
