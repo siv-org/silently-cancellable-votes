@@ -4,12 +4,10 @@
 // By importing the resulting circuit-hashes.json file into our tests, watch mode will trigger auto re-runs from updated circuits.
 // (Unfortunately, we can't just watch the .circom files directly, because the test files actually touch them too (during compile), which triggers an infinite loop. See https://github.com/erhant/circomkit/issues/120)
 
-// Define our circuits to watch
-const files = ['EncryptVote.circom', 'hash_admin_salt.circom'] as const
-
 import { createHash } from 'node:crypto'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import prevHashes from './circuit-hashes.json'
+const prev = prevHashes as Record<string, string>
 
 // ANSI color codes
 const RESET = '\x1b[0m'
@@ -27,9 +25,10 @@ let changed = []
 
 // Build map of hashes
 const hashes: Record<string, string> = {}
+const files = readdirSync('./circuits').filter((f) => f.endsWith('.circom'))
 for (const file of files) {
   const hash = hashFile('./circuits/' + file)
-  if (hash !== prevHashes[file]) changed.push(file)
+  if (hash !== prev[file]) changed.push(file)
   hashes[file] = hash
 }
 
