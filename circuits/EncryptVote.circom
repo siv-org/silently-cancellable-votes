@@ -8,6 +8,11 @@ template EncryptVote() {
     signal input encoded_vote_to_secretly_cancel[4][3]; // chunkedRistrettoPoint
     signal input votes_secret_randomizer[255]; // bitify(bigint)
 
+    // TODO: Enforce that encoded_vote_to_secretly_cancel is prime-order
+    // component enforcePrimeOrder = EnforcePrimeOrder()
+    // enforcePrimeOrder.P <== encoded_vote_to_secretly_cancel
+
+
     // We recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
     // Encrypted = Encoded + (Recipient * randomizer)
 
