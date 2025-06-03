@@ -13,6 +13,7 @@ import {
   getVectorSignal,
 } from '../utils.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
+import '../circuit-hashes.json'
 
 describe('Basic multiplier (example)', function test() {
   it('should multiply two numbers', async () => {

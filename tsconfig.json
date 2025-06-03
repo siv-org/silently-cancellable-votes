@@ -32,5 +32,5 @@
     "noEmit": true
   },
   "exclude": ["node_modules"],
-  "include": ["./ts", "circuits/ed25519/"]
+  "include": ["./ts", "circuits/ed25519/", "./ts/circuit-hashes.json"]
 }
