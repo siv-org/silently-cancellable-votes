@@ -62,9 +62,6 @@ circom function generate_proof_of_secret_sum(
 ) {
     let recalculated_sum = {}
 
-    // Prep for elliptic curve math
-    let recipient = RP.fromHex(election_public_key.recipient)
-
     // Prove admin_secret_salt still hashes to a consistent value across batches
     // To prevent re-using votes multiple times
     assert hash(admin_secret_salt) === hash_of_admin_secret_salt
@@ -110,11 +107,9 @@ circom function generate_proof_of_secret_sum(
 
 (RP = Ristretto Point. Our current js implementation is coming from https://github.com/paulmillr/noble-ed25519 v1)
 
-- [ ] RP.fromHex()
-- [ ] decode() bits from Ristretto
-- [x] Curve25519.add()
-- [x] Curve25519.multiply()
-- [ ] Check for cofactor-8 groups
+- [x] decode() bits from Ristretto
+- [x] RP.add()
+- [x] RP.multiply()
 - [x] assert ... in
   - Use Poseidon hash— ZK Friendly hash.
   - For inclusion proof.
@@ -122,7 +117,7 @@ circom function generate_proof_of_secret_sum(
   - in circuit:
     - pass merkle root,
     - pass message, hash within circuit. that's a leaf.
-    - hash up a level with it's neighbors, to get hash one level up.
+    - hash up a level with its neighbors, to get hash one level up.
       - repeat again until you get to root.
       - QED the message is present in the root.
 
@@ -130,19 +125,15 @@ circom function generate_proof_of_secret_sum(
 
 #### For Ristretto in Circom, see:
 
-- https://github.com/Electron-Labs/ed25519-circom
 - https://medium.com/electron-labs/zk-ed25519-underlying-mathematics-8d4f64d9431b
 
 #### for loops:
 
 - can't use runtime parameterized lengths. Circuit needs pre-defined lengths, known at compile time.
-- Solution: Run in batches, eg 20 at time. Then pad last batch. One ZK Sum for each batch. Sum-of-sums outside of circuit.
 
 #### To test performance at compile time:
 
 `snarkjs r1cs info`
-
-- https://github.com/erhant/circomkit good framework for testing and performance
 
 #### Useful circom overview (circom101) and common recipes (merkle tree, proving array distinct, sorted, poseidon hashing):
 
