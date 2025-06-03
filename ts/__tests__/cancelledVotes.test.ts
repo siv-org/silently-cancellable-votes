@@ -105,8 +105,6 @@ describe('Ed25519 circuits', function test() {
 
 describe.only('EncryptVote()', function () {
   it('should get same results encrypting from JS or circuit', async () => {
-    // try {
-
     // Create example vote
     const election_public_key = ed.RistrettoPoint.BASE
     const plaintext = '4444-4444-4444:arnold'
@@ -122,7 +120,7 @@ describe.only('EncryptVote()', function () {
         'encoded_vote_to_secretly_cancel',
         'votes_secret_randomizer'
       ],
-      ['shared_secret']
+      ['encrypted_vote']
     >('EncryptVote', {
       file: './EncryptVote',
       template: 'EncryptVote',
@@ -163,10 +161,6 @@ describe.only('EncryptVote()', function () {
     )
 
     expect(new ed.RistrettoPoint(encrypted_ep).equals(encryptedInJS)).toBeTrue
-
-    // } catch (e: any) {
-    //   console.log('\n❌', e.message)
-    // }
   })
 })
 
