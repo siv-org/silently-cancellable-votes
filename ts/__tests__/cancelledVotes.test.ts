@@ -109,6 +109,7 @@ describe.only('EncryptVote circuit', function () {
       const circuit = await circomkit.WitnessTester('EncryptVote', {
         file: './EncryptVote',
         template: 'EncryptVote',
+        recompile: shouldRecompile('EncryptVote.circom'),
       })
 
       const election_public_key = 1n
