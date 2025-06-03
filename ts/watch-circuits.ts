@@ -7,7 +7,8 @@
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import prevHashes from './circuit-hashes.json'
-const prev = prevHashes as Record<string, string>
+type HashMap = Record<string, string[]>
+const prev = prevHashes as HashMap
 
 // ANSI color codes
 const RESET = '\x1b[0m'
@@ -24,12 +25,12 @@ export function hashFile(path: string): string {
 let changed = []
 
 // Build map of hashes
-const hashes: Record<string, string> = {}
+const hashes: HashMap = {}
 const files = readdirSync('./circuits').filter((f) => f.endsWith('.circom'))
 for (const file of files) {
   const hash = hashFile('./circuits/' + file)
-  if (hash !== prev[file]) changed.push(file)
-  hashes[file] = hash
+  if (hash !== prev[file]?.[0]) changed.push(file)
+  hashes[file] = [hash, new Date().toISOString()]
 }
 
 // Only write to the file if the hashes have changed
