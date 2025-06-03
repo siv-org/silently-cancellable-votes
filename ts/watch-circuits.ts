@@ -4,6 +4,9 @@
 // By importing the resulting circuit-hashes.json file into our tests, watch mode will trigger auto re-runs from updated circuits.
 // (Unfortunately, we can't just watch the .circom files directly, because the test files actually touch them too (during compile), which triggers an infinite loop.)
 
+// Define our circuits to watch
+const files = ['EncryptVote.circom', 'hash_admin_salt.circom'] as const
+
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import prevHashes from './circuit-hashes.json'
@@ -19,9 +22,6 @@ export function hashFile(path: string): string {
   hash.update(data)
   return hash.digest('hex').slice(0, 10)
 }
-
-// Define our circuits to watch
-const files = ['EncryptVote.circom', 'hash_admin_salt.circom'] as const
 
 let changed = []
 
