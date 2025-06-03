@@ -15,16 +15,16 @@ const RESET = '\x1b[0m'
 const YELLOW = '\x1b[33m'
 const GRAY = '\x1b[90m'
 
-export function hashFile(path: string): string {
+// Hash a single file into a short digest
+function hashFile(path: string): string {
   const data = readFileSync(path)
   const hash = createHash('sha256')
   hash.update(data)
   return hash.digest('hex').slice(0, 10)
 }
 
-let changed = []
-
 // Build map of hashes
+let changed = []
 const hashes: HashMap = {}
 const files = readdirSync('./circuits').filter((f) => f.endsWith('.circom'))
 for (const file of files) {
