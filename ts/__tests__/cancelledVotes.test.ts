@@ -166,12 +166,17 @@ describe.skip('EncryptVote()', function () {
 
 describe.only('MembershipProof()', function () {
   it('compiles', async () => {
+    // try {
     // Init circuit
-    const circuit = await circomkit.WitnessTester('MembershipProof', {
+    await circomkit.WitnessTester('MembershipProof', {
       file: './MembershipProof',
       template: 'MembershipProof',
       recompile: shouldRecompile('MembershipProof.circom'),
+      params: [16],
     })
+    // } catch (e: any) {
+    //   console.log(e.message)
+    // }
   })
 })
 
