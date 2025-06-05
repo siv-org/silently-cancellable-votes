@@ -1,4 +1,4 @@
-pragma circom 2.1.7;
+pragma circom 2.2.2;
 
 include "ed25519/point-addition.circom";
 include "ed25519/scalar-multiplication.circom";
@@ -9,7 +9,7 @@ template EncryptVote() {
     signal input votes_secret_randomizer[255]; // bitify(bigint)
 
     // We recalculate the encrypted ciphertext using the Elliptic Curve ElGamal algorithm:
-    // Encrypted = Encoded + (Recipient * randomizer)  
+    // Encrypted = Encoded + (Recipient * randomizer)
 
     // First we calc the shared secret: recipient * randomizer
     signal shared_secret[4][3];
@@ -29,7 +29,7 @@ template EncryptVote() {
 // [INFO]  snarkJS: # of Labels: 5578984
 // [INFO]  snarkJS: # of Outputs: 12
 
-// o2 optimization
+// With o2 optimizations: 38% less wires & constraints
 // [INFO]  snarkJS: Curve: bn-128
 // [INFO]  snarkJS: # of Wires: 1206958
 // [INFO]  snarkJS: # of Constraints: 1230138

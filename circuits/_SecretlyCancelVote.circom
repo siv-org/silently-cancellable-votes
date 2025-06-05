@@ -21,6 +21,8 @@ template SecretlyCancelVote(TREE_DEPTH) {
     signal encrypted_vote_to_cancel <== EncryptVote()(election_public_key, encoded_vote_to_secretly_cancel, votes_secret_randomizer);
 
     // Note: Because the above call depends on `votes_secret_randomizer`, it also helps prevent admin from cancelling unauthorized votes, since only voter knows the randomizer, not admin.
+
+    // 1b) Then we use the merkle path to prove it's in the set of all encrypted votes
     MembershipProof(TREE_DEPTH)(root_hash_of_all_encrypted_votes, encrypted_vote_to_cancel, actual_state_tree_depth, merkle_path_indices, merkle_path_of_cancelled_vote);
 
     // Public outputs
