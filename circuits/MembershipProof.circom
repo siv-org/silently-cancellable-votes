@@ -19,8 +19,8 @@ template MembershipProof(TREE_DEPTH) {
     signal t_hash <== Poseidon(3)([encrypted_vote_to_cancel[3][0], encrypted_vote_to_cancel[3][1], encrypted_vote_to_cancel[3][2]]);
     signal hashed_encrypted_vote_to_cancel <== Poseidon(4)([x_hash, y_hash, z_hash, t_hash]);
 
-    // recalculate the root with the encrypted vote and merkle proof
-    var computed_root = BinaryMerkleRoot(TREE_DEPTH)(hashed_encrypted_vote_to_cancel, actual_state_tree_depth, merkle_path_indices, merkle_path_of_cancelled_vote);
+    // Recalculate the root with the encrypted vote and merkle proof
+    signal computed_root <== BinaryMerkleRoot(TREE_DEPTH)(hashed_encrypted_vote_to_cancel, actual_state_tree_depth, merkle_path_indices, merkle_path_of_cancelled_vote);
 
     // ensure it matches the public input
     computed_root === root_hash_of_all_encrypted_votes;
