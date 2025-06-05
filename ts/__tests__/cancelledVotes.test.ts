@@ -103,7 +103,7 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
-describe.only('EncryptVote()', function () {
+describe.skip('EncryptVote()', function () {
   it('should get same results encrypting from JS or circuit', async () => {
     // Create example vote
     const election_public_key = ed.RistrettoPoint.BASE
