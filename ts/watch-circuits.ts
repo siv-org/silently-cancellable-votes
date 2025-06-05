@@ -47,12 +47,11 @@ if (whichChanged.length > 0) {
 }
 
 export function shouldRecompile(file: string): boolean {
-  const dot_circom_mtime = new Date(prev[file]?.[1])
-  const compiled_r1cs_mtime = statSync(
-    `./build/${file.replace('.circom', '.r1cs')}`
-  ).mtime
-  const changedSinceCompile = dot_circom_mtime > compiled_r1cs_mtime
-
+  const dotCircomMtime = new Date(prev[file]?.[1])
+  const pathToR1cs = `./build/${file.replace('.circom', '.r1cs')}`
+  const compiledR1cs = statSync(pathToR1cs, { throwIfNoEntry: false })
+  const changedSinceCompile =
+    dotCircomMtime > (compiledR1cs?.mtime || new Date(0))
   if (changedSinceCompile) console.log('\nRecompiling', YELLOW, file, RESET)
 
   return changedSinceCompile
