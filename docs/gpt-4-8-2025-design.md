@@ -85,7 +85,7 @@ Want a minimal example of simulating Ristretto ops in Circom or a strategy for i
 
 This is what I'm trying to prove:
 
-[[pasted in 2025-4-8 version of Overview.md]](https://github.com/siv-org/silently-cancellable-votes/blob/2936f4f3f12f16ad568cc05199bc91429090e91b/Overview.md)
+[[pasted in 2025-4-8 version of Overview.md]](https://github.com/siv-org/secretly-cancellable-votes/blob/2936f4f3f12f16ad568cc05199bc91429090e91b/Overview.md)
 
 ## ChatGPT
 
@@ -154,7 +154,7 @@ Yep
 
 ## ChatGPT
 
-[Created [zk_cancelled_votes_proof.circom](https://github.com/siv-org/silently-cancellable-votes/blob/c8db7789d8cf644a4d2d8ada8af8ed335901dd82/zk_cancelled_votes_proof.circom) file.]
+[Created [zk_cancelled_votes_proof.circom](https://github.com/siv-org/secretly-cancellable-votes/blob/c8db7789d8cf644a4d2d8ada8af8ed335901dd82/zk_cancelled_votes_proof.circom) file.]
 
 That’s a scaffolded circuit to prove each vote in a batch:
 
@@ -178,7 +178,7 @@ Yes
 
 Here’s a JS preprocessor using `noble-ed25519` and `@noble/hashes/poseidon` that prepares the circuit inputs per vote:
 
-[Created [preprocessor.ts](https://github.com/siv-org/silently-cancellable-votes/blob/1ce65f3b0805272327230a71429c537965c52c09/preprocessor.ts) file.]
+[Created [preprocessor.ts](https://github.com/siv-org/secretly-cancellable-votes/blob/1ce65f3b0805272327230a71429c537965c52c09/preprocessor.ts) file.]
 
 ### Notes:
 

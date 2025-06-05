@@ -1,7 +1,7 @@
 {
-  "name": "silently-cancellable-votes",
+  "name": "secretly-cancellable-votes",
   "version": "1.0.0",
-  "description": "Silently cancellable votes",
+  "description": "Coercion resistance, via secretly cancellable votes",
   "type": "module",
   "engines": {
     "node": ">=22.6.0"
