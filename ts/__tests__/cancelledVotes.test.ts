@@ -223,8 +223,6 @@ describe('Encoding votes', () => {
 
     expect(extractedString).toBe(votePlaintext)
   })
-
-  it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
 })
 
 describe('HashAdminSalt circuit', () => {
