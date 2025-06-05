@@ -15,7 +15,7 @@ import {
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
 
-describe('Basic multiplier (example)', function test() {
+describe('Basic multiplier (example)', () => {
   it('should multiply two numbers', async () => {
     const circuit: WitnessTester<['a', 'b'], ['c']> =
       await circomkit.WitnessTester('MultiplierDemo', {
@@ -32,7 +32,7 @@ describe('Basic multiplier (example)', function test() {
   })
 })
 
-describe('Ed25519 circuits', function test() {
+describe('Ed25519 circuits', () => {
   describe('Point addition', () => {
     it('should add a point to itself', async () => {
       const circuit: WitnessTester<['P', 'Q'], ['R']> =
@@ -66,7 +66,7 @@ describe('Ed25519 circuits', function test() {
     })
   })
 
-  describe.skip('Scalar multiplication', function () {
+  describe.skip('Scalar multiplication', () => {
     it('should multiply a point by a scalar', async () => {
       const circuit: WitnessTester<['P', 'scalar'], ['sP']> =
         await circomkit.WitnessTester('ScalarMul', {
@@ -103,7 +103,7 @@ describe('Ed25519 circuits', function test() {
   })
 })
 
-describe.skip('EncryptVote()', function () {
+describe.skip('EncryptVote()', () => {
   it('should get same results encrypting from JS or circuit', async () => {
     // Create example vote
     const election_public_key = ed.RistrettoPoint.BASE
@@ -164,7 +164,7 @@ describe.skip('EncryptVote()', function () {
   })
 })
 
-describe.only('MembershipProof()', function () {
+describe('MembershipProof()', () => {
   it('compiles', async () => {
     // try {
     // Init circuit
@@ -180,7 +180,7 @@ describe.only('MembershipProof()', function () {
   })
 })
 
-describe('Encoding votes', function () {
+describe('Encoding votes', () => {
   it('can convert strings to scalars and back', async () => {
     const sampleVote = '4444-4444-4444:washington'
     const encoded = new TextEncoder().encode(sampleVote)
@@ -227,7 +227,7 @@ describe('Encoding votes', function () {
   it.skip('our circuit can RP.fromHex() and confirm the point is valid', async () => {})
 })
 
-describe('HashAdminSalt circuit', function () {
+describe('HashAdminSalt circuit', () => {
   it('should hash the admin_secret_salt correctly', async () => {
     const circuit = await circomkit.WitnessTester('HashAdminSalt', {
       file: './HashAdminSalt',
