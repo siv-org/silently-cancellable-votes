@@ -33,3 +33,12 @@ template EncryptVote() {
 // [INFO]  snarkJS: # of Public Inputs: 0
 // [INFO]  snarkJS: # of Labels: 5578984
 // [INFO]  snarkJS: # of Outputs: 12
+
+// With o2 optimizations: 38% less wires & constraints
+// [INFO]  snarkJS: Curve: bn-128
+// [INFO]  snarkJS: # of Wires: 1206958
+// [INFO]  snarkJS: # of Constraints: 1230138
+// [INFO]  snarkJS: # of Private Inputs: 279
+// [INFO]  snarkJS: # of Public Inputs: 0
+// [INFO]  snarkJS: # of Labels: 5578984
+// [INFO]  snarkJS: # of Outputs: 12

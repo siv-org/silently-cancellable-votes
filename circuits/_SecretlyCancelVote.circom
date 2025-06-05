@@ -1,26 +1,29 @@
 pragma circom 2.2.2;
 
-template SecretlyCancelVote() {
-    var TREE_DEPTH = 16; // 2^16, up to 65k votes per root
+template SecretlyCancelVote(TREE_DEPTH) {
+    // var TREE_DEPTH = 16; // 2^16, up to 65k votes per root
 
     // Public inputs
     signal input root_hash_of_all_encrypted_votes; // poseidon_hash
     signal input election_public_key[32]; // RistrettoPoint.toBytes()
+    signal input actual_state_tree_depth;
 
     // Private inputs
-    signal encoded_vote_to_secretly_cancel[32]; // bytes[32]
-    signal votes_secret_randomizer; // bigint
-    signal index_of_vote_to_cancel; // integer
-    signal merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
-    signal admin_secret_salt; // bigint
+    signal input encoded_vote_to_secretly_cancel[32]; // bytes[32]
+    signal input votes_secret_randomizer; // bigint
+    // signal input index_of_vote_to_cancel; // integer
+    signal input merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
+    signal input merkle_path_indices[TREE_DEPTH]; // integer[]
+    signal input admin_secret_salt; // bigint
 
     // 1) Confirm encrypted vote is in the tree
     // 1a) First we need to encrypt our vote again
     signal encrypted_vote_to_cancel <== EncryptVote()(election_public_key, encoded_vote_to_secretly_cancel, votes_secret_randomizer);
+
     // Note: Because the above call depends on `votes_secret_randomizer`, it also helps prevent admin from cancelling unauthorized votes, since only voter knows the randomizer, not admin.
 
     // 1b) Then we use the merkle path to prove it's in the set of all encrypted votes
-    assert(MembershipProof(TREE_DEPTH)(root_hash_of_all_encrypted_votes, encrypted_vote_to_cancel, index_of_vote_to_cancel, merkle_path_of_cancelled_vote) == 1);
+    MembershipProof(TREE_DEPTH)(root_hash_of_all_encrypted_votes, encrypted_vote_to_cancel, actual_state_tree_depth, merkle_path_indices, merkle_path_of_cancelled_vote);
 
     // Public outputs
 

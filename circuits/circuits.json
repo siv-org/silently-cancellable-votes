@@ -1,0 +1,8 @@
+{
+    "EncryptVote": {
+        "file": "./EncryptVote",
+        "template": "EncryptVote",
+        "params": [],
+        "pubs": []
+      }
+}
