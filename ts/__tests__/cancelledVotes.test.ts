@@ -164,6 +164,17 @@ describe.skip('EncryptVote()', function () {
   })
 })
 
+describe.only('MembershipProof()', function () {
+  it('compiles', async () => {
+    // Init circuit
+    const circuit = await circomkit.WitnessTester('MembershipProof', {
+      file: './MembershipProof',
+      template: 'MembershipProof',
+      recompile: shouldRecompile('MembershipProof.circom'),
+    })
+  })
+})
+
 describe('Encoding votes', function () {
   it('can convert strings to scalars and back', async () => {
     const sampleVote = '4444-4444-4444:washington'
