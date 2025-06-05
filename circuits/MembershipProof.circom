@@ -25,3 +25,12 @@ template MembershipProof(TREE_DEPTH) {
     // ensure it matches the public input
     computed_root === root_hash_of_all_encrypted_votes;
 }
+
+// npx snarkjs r1cs info build/MembershipProof.r1cs
+// [INFO]  snarkJS: Curve: bn-128
+// [INFO]  snarkJS: # of Wires: 11574
+// [INFO]  snarkJS: # of Constraints: 11544
+// [INFO]  snarkJS: # of Private Inputs: 46
+// [INFO]  snarkJS: # of Public Inputs: 0
+// [INFO]  snarkJS: # of Labels: 17510
+// [INFO]  snarkJS: # of Outputs: 0
