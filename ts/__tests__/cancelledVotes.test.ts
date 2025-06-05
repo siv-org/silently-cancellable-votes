@@ -103,8 +103,8 @@ describe('Ed25519 circuits', () => {
   })
 })
 
-describe.skip('EncryptVote()', () => {
-  it('should get same results encrypting from JS or circuit', async () => {
+describe('EncryptVote()', () => {
+  it.skip('should get same results encrypting from JS or circuit', async () => {
     // Create example vote
     const election_public_key = ed.RistrettoPoint.BASE
     const plaintext = '4444-4444-4444:arnold'
@@ -162,6 +162,16 @@ describe.skip('EncryptVote()', () => {
 
     expect(new ed.RistrettoPoint(encrypted_ep).equals(encryptedInJS)).toBeTrue
   })
+
+  it.failing(
+    'should be resistant to subgroup-variant small cofactor attacks',
+    () => {
+      // I.e. produce different results from subgroup-variant encoded points
+      // encoded point_1
+      // derive encoded point_2 from encoded point_1
+      // Should result in distinct ciphertexts
+    }
+  )
 })
 
 describe('MembershipProof()', () => {
