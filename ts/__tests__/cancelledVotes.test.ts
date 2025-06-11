@@ -11,6 +11,7 @@ import {
   bigintTo255Bits,
   extendedToAffine,
   getVectorSignal,
+  poseidon,
 } from '../utils.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
@@ -175,6 +176,22 @@ describe('EncryptVote()', () => {
 })
 
 describe('MembershipProof()', () => {
+  it('poseidon() should get the same results in JS and circuit', async () => {
+    const circuit = await circomkit.WitnessTester('HashAdminSalt', {
+      file: './HashAdminSalt',
+      template: 'HashAdminSalt',
+      recompile: shouldRecompile('HashAdminSalt.circom'),
+    })
+
+    const input = [1231455345345324n]
+    const witness = await circuit.calculateWitness({ admin_secret_salt: input })
+    const hash = await getSignal(circuit, witness, 'hash_of_admin_secret_salt')
+
+    const hashInJS = poseidon(input)
+
+    expect(hash).toBe(hashInJS)
+  })
+
   it('compiles', async () => {
     // try {
     // Init circuit
@@ -184,6 +201,7 @@ describe('MembershipProof()', () => {
       recompile: shouldRecompile('MembershipProof.circom'),
       params: [16],
     })
+
     // } catch (e: any) {
     //   console.log(e.message)
     // }

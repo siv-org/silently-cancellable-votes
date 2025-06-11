@@ -1,3 +1,4 @@
+import { poseidonPerm } from '@zk-kit/poseidon-cipher'
 import { Circomkit, type WitnessTester, type CircomkitConfig } from 'circomkit'
 import fs from 'fs'
 import path from 'path'
@@ -191,3 +192,11 @@ export function extendedToAffine([X, Y, Z]: XYZTPoint) {
   const y = mod(Y * zInv)
   return { x, y }
 }
+
+/**
+ * Generate the poseidon hash of the inputs provided
+ * @param inputs The inputs to hash
+ * @returns the hash of the inputs
+ */
+export const poseidon = (inputs: bigint[]): bigint =>
+  poseidonPerm([BigInt(0), ...inputs.map((x) => BigInt(x))])[0]
