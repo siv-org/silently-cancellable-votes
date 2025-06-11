@@ -192,19 +192,43 @@ describe('MembershipProof()', () => {
     expect(hash).toBe(hashInJS)
   })
 
-  it('compiles', async () => {
-    // try {
-    // Init circuit
-    await circomkit.WitnessTester('MembershipProof', {
-      file: './MembershipProof',
-      template: 'MembershipProof',
-      recompile: shouldRecompile('MembershipProof.circom'),
-      params: [16],
-    })
+  it.only('returns true iff items are present in the tree', async () => {
+    try {
+      // Init circuit
+      const circuit = await circomkit.WitnessTester('MembershipProof', {
+        file: './MembershipProof',
+        template: 'MembershipProof',
+        recompile: shouldRecompile('MembershipProof.circom'),
+        params: [16],
+      })
 
-    // } catch (e: any) {
-    //   console.log(e.message)
-    // }
+      // Build a tree of 16 leaves
+
+      // Calculate witness for good inputs
+      const witness = await circuit.calculateWitness({
+        encrypted_vote_to_cancel, // poseidon_hash[4][3]
+        actual_state_tree_depth, // integer
+        merkle_path_indices, // integer[TREE_DEPTH]
+        merkle_path_of_cancelled_vote, // poseidon_hash[TREE_DEPTH]
+        root_hash_of_all_encrypted_votes, // poseidon_hash
+      })
+      // Passes on good inputs
+      circuit.expectConstraintPass(witness)
+
+      // Calculate witness for bad inputs
+      const witness2 = await circuit.calculateWitness({
+        encrypted_vote_to_cancel, // poseidon_hash[4][3]
+        actual_state_tree_depth, // integer
+        merkle_path_indices, // integer[TREE_DEPTH]
+        merkle_path_of_cancelled_vote, // poseidon_hash[TREE_DEPTH]
+        root_hash_of_all_encrypted_votes, // poseidon_hash
+      })
+      // Fails on bad inputs
+      circuit.expectConstraintFail(witness2)
+    } catch (e: any) {
+      console.log(e.message)
+      throw new Error('Finish implementation')
+    }
   })
 })
 
