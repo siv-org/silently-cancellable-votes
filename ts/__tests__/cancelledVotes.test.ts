@@ -163,7 +163,7 @@ describe('EncryptVote()', () => {
     expect(new ed.RistrettoPoint(encrypted_ep).equals(encryptedInJS)).toBeTrue
   })
 
-  it.failing(
+  it.todo(
     'should be resistant to subgroup-variant small cofactor attacks',
     () => {
       // I.e. produce different results from subgroup-variant encoded points
