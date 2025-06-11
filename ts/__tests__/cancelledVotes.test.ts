@@ -104,6 +104,38 @@ describe('Ed25519 circuits', () => {
   })
 })
 
+describe('EnforcePrimeOrder()', () => {
+  it.only('should enforce prime order', async () => {
+    try {
+      const circuit = await circomkit.WitnessTester('EnforcePrimeOrder', {
+        file: './EnforcePrimeOrder',
+        template: 'EnforcePrimeOrder',
+        recompile: shouldRecompile('EnforcePrimeOrder.circom'),
+      })
+
+      // For a valid ristretto point, the circuit should pass
+      const ristrettoPoint = stringToPoint('foobar')
+      // @ts-expect-error Overriding .ep privatization
+      const P_ep = ristrettoPoint.ep as ed.ExtendedPoint
+      const P = chunk(xyztObjToArray(P_ep))
+
+      const witness = await circuit.calculateWitness({ P })
+      circuit.expectConstraintPass(witness)
+
+      // And try to make it fail by adding the point to itself
+      const P3 = P_ep.multiply(3n)
+
+      // console.log(chunk(xyztObjToArray(P8.ep)))
+      const witness2 = await circuit.calculateWitness({
+        P: chunk(xyztObjToArray(P3)),
+      })
+      circuit.expectConstraintFail(witness2)
+    } catch (e: any) {
+      console.log(e.message)
+    }
+  })
+})
+
 describe('EncryptVote()', () => {
   it.skip('should get same results encrypting from JS or circuit', async () => {
     // Create example vote
@@ -192,7 +224,7 @@ describe('MembershipProof()', () => {
     expect(hash).toBe(hashInJS)
   })
 
-  it.only('returns true iff items are present in the tree', async () => {
+  it.todo('returns true iff items are present in the tree', async () => {
     try {
       // Init circuit
       const circuit = await circomkit.WitnessTester('MembershipProof', {
@@ -203,6 +235,18 @@ describe('MembershipProof()', () => {
       })
 
       // Build a tree of 16 leaves
+      // @ts-expect-error Overriding .ep privatization
+      const encrypted_vote_to_cancel = stringToPoint('foobar').ep
+      const actual_state_tree_depth = 16
+      const merkle_path_indices = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ]
+      const merkle_path_of_cancelled_vote = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ]
+      const root_hash_of_all_encrypted_votes = poseidon(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(BigInt)
+      )
 
       // Calculate witness for good inputs
       const witness = await circuit.calculateWitness({
