@@ -44,6 +44,19 @@ template ExtractStringFromPoint() {
     }
 }
 
+/// Given a string with the vote and identifier, extract the vote selection only
+template ExtractVoteSelectionFromVote(maxLength) {
+    signal input stringAsBytes[maxLength];
+    var START_INDEX = 15;
+
+    signal output choice[maxLength - START_INDEX];
+
+    for (var i = START_INDEX; i < maxLength; i++) {
+        log(stringAsBytes[i]);
+        choice[i - START_INDEX] <== stringAsBytes[i];
+    }
+}
+
 // if (index < range) { emit value } else { emit 0 }
 template EmitIfInRange(n) {
     signal input index, range, value;
