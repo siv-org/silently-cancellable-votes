@@ -16,7 +16,7 @@ include "comparators.circom";
 // NOTE: This circuit will successfully verify `out = 0` for `depth > MAX_DEPTH`.
 // Make sure to enforce `depth <= MAX_DEPTH` outside the circuit.
 template BinaryMerkleRoot(MAX_DEPTH) {
-    signal input leaf, depth, indices[MAX_DEPTH], siblings[MAX_DEPTH];
+    signal input leaf, depth, index, siblings[MAX_DEPTH];
 
     signal output out;
 
@@ -25,6 +25,8 @@ template BinaryMerkleRoot(MAX_DEPTH) {
 
     signal roots[MAX_DEPTH];
     var root = 0;
+
+    signal indices[MAX_DEPTH] <== Num2Bits(MAX_DEPTH)(index);
 
     for (var i = 0; i < MAX_DEPTH; i++) {
         indices[i] * (1 - indices[i]) === 0;

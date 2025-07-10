@@ -1,8 +1,8 @@
 {
-    "EncryptVote": {
-        "file": "./EncryptVote",
-        "template": "EncryptVote",
-        "params": [],
+    "SecretlyCancelVote": {
+        "file": "./_SecretlyCancelVote",
+        "template": "SecretlyCancelVote",
+        "params": [16],
         "pubs": []
       }
 }

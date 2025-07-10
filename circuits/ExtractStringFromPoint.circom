@@ -16,7 +16,9 @@ template ExtractStringFromPoint() {
     signal output stringAsBytes[maxLength];
 
     // Extract length from first byte (right shifted by 1)
-    signal shiftedFirstByte <-- (pointAsBytes[0] >> 1);
+    // We need to ensure the result is constrained properly
+    // @todo check this 
+    signal shiftedFirstByte <== pointAsBytes[0] / 2;
     signal output length <== shiftedFirstByte;
 
     // Extract the embedded string bytes:
@@ -24,6 +26,19 @@ template ExtractStringFromPoint() {
     // Since the 1st byte was reserved for the length, we use `pointAsBytes[i + 1]`.
     for (var i = 0; i < maxLength; i++) {
         stringAsBytes[i] <== EmitIfInRange(5)(i, length, pointAsBytes[i + 1]);
+    }
+}
+
+/// Given a string with the vote and identifier, extract the vote selection only
+template ExtractVoteSelectionFromVote(maxLength) {
+    signal input stringAsBytes[maxLength];
+    var START_INDEX = 15;
+
+    signal output choice[maxLength - START_INDEX];
+
+    for (var i = START_INDEX; i < maxLength; i++) {
+        log(stringAsBytes[i]);
+        choice[i - START_INDEX] <== stringAsBytes[i];
     }
 }
 
