@@ -2,6 +2,21 @@ pragma circom 2.2.2;
 
 include "comparators.circom";
 
+template RShift1(N) {
+    signal input in;
+    signal output out;
+
+    component n2b = Num2Bits(N);
+    n2b.in <== in;
+    signal bits[N] <== n2b.out;
+
+    signal shifted_bits[N-1];
+    for (var i=0; i<N-1; i++) {
+        shifted_bits[i] <== bits[i+1];
+    }
+    out <== Bits2Num(N-1)(shifted_bits);
+}
+
 // This circuit is the circom equivalent of our `extract()` function from `curve.ts`.
 // It extracts an embedded string from a Ristretto point, and returns the string as individual bytes.
 // Since circom doesn't support strings, we represent the string as a series of bytes.
@@ -16,7 +31,9 @@ template ExtractStringFromPoint() {
     signal output stringAsBytes[maxLength];
 
     // Extract length from first byte (right shifted by 1)
-    signal shiftedFirstByte <-- (pointAsBytes[0] >> 1);
+    component rshift1 = RShift1(5);
+    rshift1.in <== pointAsBytes[0];
+    signal shiftedFirstByte <== rshift1.out;
     signal output length <== shiftedFirstByte;
 
     // Extract the embedded string bytes:
