@@ -6,6 +6,7 @@
       "dependencies": {
         "@noble/ed25519": "^1.7.5",
         "@zk-kit/circuits": "1.0.0-beta",
+        "@zk-kit/lean-imt": "^2.2.3",
         "@zk-kit/poseidon-cipher": "^0.3.2",
         "circomkit": "^0.3.2",
         "circomlib": "^2.0.5",
@@ -41,9 +42,11 @@
 
     "@zk-kit/circuits": ["@zk-kit/circuits@1.0.0-beta", "", { "dependencies": { "circomlib": "^2.0.5" } }, "sha512-ZJBkmm//iFlDB3pQOWAOqSCeUQFYWzI00a980jjbEcuzQgq2PqBxiq36TFxnZHkbrOh39XpeWOoEpCXRkjS2KQ=="],
 
+    "@zk-kit/lean-imt": ["@zk-kit/lean-imt@2.2.3", "", { "dependencies": { "@zk-kit/utils": "1.3.0" } }, "sha512-T6NXLzMuwFjp+hg6WJZqzJ2qyyTmbS9JmxiWW/lmp+VxxJLAO9byAvqd5p/7616AXdHyTbwku0tdX0JDq9Pkng=="],
+
     "@zk-kit/poseidon-cipher": ["@zk-kit/poseidon-cipher@0.3.2", "", { "dependencies": { "@zk-kit/baby-jubjub": "1.0.3", "@zk-kit/utils": "1.2.1" } }, "sha512-Ezz1e0mj/GRDlHdU5m0uhj5iHY72zWJU0BP8DsCCvPubU7LPI2tVaPpxrAjT4JQqatbVRQHLIhixW7F7BPzaFg=="],
 
-    "@zk-kit/utils": ["@zk-kit/utils@1.2.1", "", { "dependencies": { "buffer": "^6.0.3" } }, "sha512-H2nTsyWdicVOyvqC5AjgU7tsTgmR6PDrruFJNmlmdhKp7RxEia/E1B1swMZjaasYa2QMp4Zc6oB7cWchty7B2Q=="],
+    "@zk-kit/utils": ["@zk-kit/utils@1.3.0", "", { "dependencies": { "buffer": "^6.0.3" } }, "sha512-Gqsq5KLDf2WPuZSsNc2KZy25XeK5d5UV9hwLaPEM5wq+GD2qCi1ZBFzNs0OptiJ9GRGtP2J/xptrszWri+pRqQ=="],
 
     "ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg=="],
 
@@ -294,6 +297,10 @@
     "which-typed-array": ["which-typed-array@1.1.19", "", { "dependencies": { "available-typed-arrays": "^1.0.7", "call-bind": "^1.0.8", "call-bound": "^1.0.4", "for-each": "^0.3.5", "get-proto": "^1.0.1", "gopd": "^1.2.0", "has-tostringtag": "^1.0.2" } }, "sha512-rEvr90Bck4WZt9HHFC4DJMsjvu7x+r6bImz0/BrbWb7A2djJ8hnZMrWnHo9F8ssv0OMErasDhftrfROTyqSDrw=="],
 
     "word-wrap": ["word-wrap@1.2.5", "", {}, "sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA=="],
+
+    "@zk-kit/baby-jubjub/@zk-kit/utils": ["@zk-kit/utils@1.2.1", "", { "dependencies": { "buffer": "^6.0.3" } }, "sha512-H2nTsyWdicVOyvqC5AjgU7tsTgmR6PDrruFJNmlmdhKp7RxEia/E1B1swMZjaasYa2QMp4Zc6oB7cWchty7B2Q=="],
+
+    "@zk-kit/poseidon-cipher/@zk-kit/utils": ["@zk-kit/utils@1.2.1", "", { "dependencies": { "buffer": "^6.0.3" } }, "sha512-H2nTsyWdicVOyvqC5AjgU7tsTgmR6PDrruFJNmlmdhKp7RxEia/E1B1swMZjaasYa2QMp4Zc6oB7cWchty7B2Q=="],
 
     "chalk/supports-color": ["supports-color@7.2.0", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw=="],
 

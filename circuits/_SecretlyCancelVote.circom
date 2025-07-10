@@ -7,18 +7,32 @@ include "MerkleRoot.circom";
 include "poseidon.circom";
 include "HashAdminSalt.circom";
 
-template SecretlyCancelVote(TREE_DEPTH) {
-    // var TREE_DEPTH = 16; // 2^16, up to 65k votes per root
+/**
+Verification #: 4470-7655-8313
 
+icecream
+  plaintext: 4470-7655-8313:Pistacchio
+  encoded: 32343437302d373635352d383331333a5069737461636368696f77329d87430f
+  randomizer: 1824575995961533715804695610269531409259964862024837291270780613852485667720
+    encrypted: 66a82bb523bddf2a1d9ea1de7cdf65f04ee17716edfa20dfb5c16301e4dd9a70
+    lock: 6671f6d6d4e4993aec2b44f0e6c6f34211b062c0a70f80989d2bc075ba384146
+*/
+
+template SecretlyCancelVote(TREE_DEPTH) {
     // Public inputs
     signal input root_hash_of_all_encrypted_votes; // poseidon_hash
     signal input election_public_key[4][3]; // RistrettoPoint.toBytes()
+    // how big the dynamic tree actually is
     signal input actual_state_tree_depth;
 
     // Private inputs
-    signal input encoded_vote_to_secretly_cancel[4][3]; // bytes[32]
+    // RP.fromHex(encoded).ep -> chunk -> [x, y, z, t]
+    // @todo figure out which one is more efficient of the two [4][3] -> [32] or [32] -> [4][3]
+    // @todo these 2 should be the same thing so read above
+    signal input encoded_vote_to_secretly_cancel[4][3]; // Ristretto Point 
+    signal input encoded_vote_to_secretly_cancel_bytes[32]; // bytes
     signal input votes_secret_randomizer; // bigint
-    // signal input index_of_vote_to_cancel; // integer
+    
     signal input merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
     signal input merkle_path_index; // integer
     signal input admin_secret_salt; // bigint
@@ -38,11 +52,11 @@ template SecretlyCancelVote(TREE_DEPTH) {
     // 2) Prove the cancelled vote content
     var MAX_VOTE_CONTENT_LENGTH = 32 - 1 - 15; // 32 - length_byte - 15_bytes_for_verification_number
     signal output vote_selection_to_cancel[MAX_VOTE_CONTENT_LENGTH]; // integer[], eg. 'abca' -> [97, 98, 99, 97]
-    vote_selection_to_cancel <== ExtractVoteSelectionFromVote(31)(encoded_vote_to_secretly_cancel);
+    vote_selection_to_cancel <== ExtractVoteSelectionFromVote()(encoded_vote_to_secretly_cancel_bytes);
 
     // 3) Prove the cancelled vote is unique
-    // @todo not sure we need this?
-    signal output salted_hash_of_vote_to_cancel <== Poseidon(2)([admin_secret_salt, encoded_vote_to_secretly_cancel]);
+    var hashed_encoded_vote_to_secretly_cancel = HashPoint()(encoded_vote_to_secretly_cancel);
+    signal output salted_hash_of_vote_to_cancel <== Poseidon(2)([admin_secret_salt, hashed_encoded_vote_to_secretly_cancel]);
 
     // 3b) Prove the admin's secret salt is consistent across all cancelled votes
     signal output hash_of_admin_secret_salt <== HashAdminSalt()(admin_secret_salt);

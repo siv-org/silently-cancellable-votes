@@ -16,20 +16,52 @@ import {
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
 
-describe('Basic multiplier (example)', () => {
-  it('should multiply two numbers', async () => {
-    const circuit: WitnessTester<['a', 'b'], ['c']> =
-      await circomkit.WitnessTester('MultiplierDemo', {
-        file: './MultiplierDemo',
-        template: 'MultiplierDemo',
-        recompile: shouldRecompile('MultiplierDemo.circom'),
-      })
 
-    const a = BigInt(2)
-    const b = BigInt(3)
-    const c = await circuit.calculateWitness({ a, b })
-    const result = await getSignal(circuit, c, 'c')
-    expect(result).toBe(a * b)
+describe.only('SecretlyCancelVote', () => {
+  it('should cancel a vote', async () => {
+    const circuit = await circomkit.WitnessTester('SecretlyCancelVote', {
+      file: './_SecretlyCancelVote',
+      template: 'SecretlyCancelVote',
+      recompile: shouldRecompile('_SecretlyCancelVote.circom'),
+      params: [16],
+      pubs: ['root_hash_of_all_encrypted_votes', 'election_public_key', 'actual_state_tree_depth']
+    })
+
+    const sampleVote = '4470-7655-8313:Pistacchio'
+    const encoded = stringToPoint(sampleVote)
+    const rawBytes = [...encoded.toRawBytes()]
+    
+    const electionPubKeyHex = "e4742ff6ae59f741b757d1b1df0d0b0eeb3dd6618f42aed0f97cddcd480f186e";
+    const electionPubKey = ed.RistrettoPoint.fromHex(electionPubKeyHex);
+    // @ts-expect-error Overriding .ep privatization
+    const chunkedElectionPubKey = chunk(xyztObjToArray(electionPubKey.ep))
+
+    const admin_secret_salt = 123456789n
+    const hashOfAdminSecretSalt = poseidon([admin_secret_salt])
+
+    const inputs = {
+      root_hash_of_all_encrypted_votes: 1234n,
+      election_public_key: chunkedElectionPubKey,
+      actual_state_tree_depth: 16,
+      merkle_path_index: 0,
+      merkle_path_of_cancelled_vote: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      admin_secret_salt,
+      encoded_vote_to_secretly_cancel_bytes: rawBytes,
+      // @ts-expect-error Overriding .ep privatization
+      encoded_vote_to_secretly_cancel: chunk(encoded.ep),
+      votes_secret_randomizer: 1824575995961533715804695610269531409259964862024837291270780613852485667720n,
+    }
+
+    const witness = await circuit.calculateWitness(inputs)
+    const saltedHashOfVoteToCancel = await getSignal(circuit, witness, 'salted_hash_of_vote_to_cancel')
+    console.log({ saltedHashOfVoteToCancel })
+
+    const hashOfAdminSecretSaltCircuit = await getSignal(circuit, witness, 'hash_of_admin_secret_salt')
+    expect(hashOfAdminSecretSaltCircuit).toBe(hashOfAdminSecretSalt)
+
+    const voteSelectionToCancel = await getSignal(circuit, witness, 'vote_selection_to_cancel') as bigint[]
+    const voteSelectionToCancelCircuit = new TextDecoder().decode(Uint8Array.from(voteSelectionToCancel))
+    expect(voteSelectionToCancelCircuit).toBe(sampleVote.slice(15))
   })
 })
 
@@ -276,7 +308,7 @@ describe('MembershipProof()', () => {
   })
 })
 
-describe.only('Encoding votes', () => {
+describe('Encoding votes', () => {
   it('can convert strings to scalars and back', async () => {
     const sampleVote = '4444-4444-4444:washington'
     const encoded = new TextEncoder().encode(sampleVote)

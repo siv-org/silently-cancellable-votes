@@ -33,8 +33,7 @@ template ExtractStringFromPoint() {
     // Extract length from first byte (right shifted by 1)
     component rshift1 = RShift1(5);
     rshift1.in <== pointAsBytes[0];
-    signal shiftedFirstByte <== rshift1.out;
-    signal output length <== shiftedFirstByte;
+    signal length <== rshift1.out;
 
     // Extract the embedded string bytes:
     // For each possible string byte, output `value` if `i < length`, else output 0.
@@ -45,8 +44,15 @@ template ExtractStringFromPoint() {
 }
 
 /// Given a string with the vote and identifier, extract the vote selection only
-template ExtractVoteSelectionFromVote(maxLength) {
-    signal input stringAsBytes[maxLength];
+template ExtractVoteSelectionFromVote() {
+    var bytesPerPoint = 32;
+    var maxLength = bytesPerPoint - 1; // 1st byte is for length
+
+    // Input: serialized point as bytes
+    signal input pointAsBytes[bytesPerPoint];
+
+    signal stringAsBytes[maxLength] <== ExtractStringFromPoint()(pointAsBytes);
+
     var START_INDEX = 15;
 
     signal output choice[maxLength - START_INDEX];

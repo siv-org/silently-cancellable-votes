@@ -21,6 +21,7 @@
   "dependencies": {
     "@noble/ed25519": "^1.7.5",
     "@zk-kit/circuits": "1.0.0-beta",
+    "@zk-kit/lean-imt": "^2.2.3",
     "@zk-kit/poseidon-cipher": "^0.3.2",
     "circomkit": "^0.3.2",
     "circomlib": "^2.0.5",
