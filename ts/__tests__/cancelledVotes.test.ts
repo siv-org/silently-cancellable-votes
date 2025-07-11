@@ -466,7 +466,7 @@ describe('HashAdminSalt circuit', () => {
 })
 
 describe('RistrettoToBytes().circom', () => {
-  it.only('can correctly calculate InverseSqrt(t) in circuit', async () => {
+  it('can correctly calculate InverseSqrt(t) in circuit', async () => {
     const circuit = await circomkit.WitnessTester('ChunkedInvertSqrt', {
       file: './ChunkedSqrt',
       template: 'ChunkedInvertSqrt',
@@ -483,7 +483,7 @@ describe('RistrettoToBytes().circom', () => {
     expect(out).toEqual(chunkBigInt(expected))
   })
 
-  it('convert Ristretto point to bytes in circuit should match JS', async () => {
+  it.only('convert Ristretto point to bytes in circuit should match JS', async () => {
     const circuit = await circomkit.WitnessTester('RistrettoToBytes', {
       file: './RistrettoToBytes',
       template: 'RistrettoToBytes',

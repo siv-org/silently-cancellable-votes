@@ -4,6 +4,7 @@ include "bitify.circom";
 include "ed25519/chunkedadd.circom";
 include "ed25519/chunkedsub.circom";
 include "ed25519/chunkedmul.circom";
+include "ChunkedSqrt.circom";
 
 template RistrettoToBytes() {
     // Input: x, y, z, t in chunked form
