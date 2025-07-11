@@ -2,25 +2,9 @@ pragma circom 2.2.2;
 
 include "comparators.circom";
 
-template RShift1(N) {
-    signal input in;
-    signal output out;
-
-    component n2b = Num2Bits(N);
-    n2b.in <== in;
-    signal bits[N] <== n2b.out;
-
-    signal shifted_bits[N-1];
-    for (var i=0; i<N-1; i++) {
-        shifted_bits[i] <== bits[i+1];
-    }
-    out <== Bits2Num(N-1)(shifted_bits);
-}
-
 // This circuit is the circom equivalent of our `extract()` function from `curve.ts`.
 // It extracts an embedded string from a Ristretto point, and returns the string as individual bytes.
 // Since circom doesn't support strings, we represent the string as a series of bytes.
-
 template ExtractStringFromPoint() {
     var bytesPerPoint = 32;
     var maxLength = bytesPerPoint - 1; // 1st byte is for length
@@ -43,26 +27,6 @@ template ExtractStringFromPoint() {
     }
 }
 
-/// Given a string with the vote and identifier, extract the vote selection only
-template ExtractVoteSelectionFromVote() {
-    var bytesPerPoint = 32;
-    var maxLength = bytesPerPoint - 1; // 1st byte is for length
-
-    // Input: serialized point as bytes
-    signal input pointAsBytes[bytesPerPoint];
-
-    signal stringAsBytes[maxLength] <== ExtractStringFromPoint()(pointAsBytes);
-
-    var START_INDEX = 15;
-
-    signal output choice[maxLength - START_INDEX];
-
-    for (var i = START_INDEX; i < maxLength; i++) {
-        log(stringAsBytes[i]);
-        choice[i - START_INDEX] <== stringAsBytes[i];
-    }
-}
-
 // if (index < range) { emit value } else { emit 0 }
 template EmitIfInRange(n) {
     signal input index, range, value;
@@ -72,6 +36,21 @@ template EmitIfInRange(n) {
     lt.in[0] <== index;
     lt.in[1] <== range;
     out <== lt.out * value;
+}
+
+template RShift1(N) {
+    signal input in;
+    signal output out;
+
+    component n2b = Num2Bits(N);
+    n2b.in <== in;
+    signal bits[N] <== n2b.out;
+
+    signal shifted_bits[N-1];
+    for (var i=0; i<N-1; i++) {
+        shifted_bits[i] <== bits[i+1];
+    }
+    out <== Bits2Num(N-1)(shifted_bits);
 }
 
 

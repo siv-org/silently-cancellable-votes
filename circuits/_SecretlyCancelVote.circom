@@ -1,7 +1,7 @@
 pragma circom 2.2.2;
 
 include "EncryptVote.circom";
-include "ExtractStringFromPoint.circom";
+include "ExtractVoteSelectionFromVote.circom";
 include "MembershipProof.circom";
 include "MerkleRoot.circom";
 include "poseidon.circom";
