@@ -491,5 +491,12 @@ describe('RistrettoToBytes().circom', () => {
     })
 
     const point = ed.RistrettoPoint.BASE
+    const witness = await circuit.calculateWitness({
+      // @ts-expect-error Overriding .ep privatization
+      P: chunk(xyztObjToArray(point.ep)),
+    })
+    const out = await getVectorSignal(circuit, witness, 's_bytes', 32)
+    console.log({ out })
+    expect(out).toEqual([...point.toRawBytes()].map(BigInt))
   })
 })
