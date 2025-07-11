@@ -147,11 +147,12 @@ export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   return chunked as ChunkedPoint
 }
 
+export const dechunkArray = (chunked: [bigint, bigint, bigint]): bigint =>
+  chunked[0] + (chunked[1] << 85n) + (chunked[2] << 170n)
+
 /** Convert 85-bit chunks back to XYZTPoint */
 export const dechunk = (chunked: ChunkedPoint): XYZTPoint =>
-  chunked.map(
-    (coord) => coord[0] + (coord[1] << 85n) + (coord[2] << 170n)
-  ) as XYZTPoint
+  chunked.map(dechunkArray) as XYZTPoint
 
 /** Convert an ExtendedPoint object to an XYZTPoint array */
 export const xyztObjToArray = (xyztObj: {
