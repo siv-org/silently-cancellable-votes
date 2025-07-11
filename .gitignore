@@ -5,3 +5,4 @@ build
 circuit-hashes.json
 pnpm-lock.yaml
 bun.lock
+package-lock.json

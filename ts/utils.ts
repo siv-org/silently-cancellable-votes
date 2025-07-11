@@ -133,11 +133,9 @@ export function chunkBigInt(n: bigint): bigint[] {
   return arr
 }
 
-/** 
- * Convert ExtendedPoints (XYZTPoint) to arrays of 85-bit chunks
+/** Convert ExtendedPoints (XYZTPoint) to arrays of 85-bit chunks
  *
- * [bigint, bigint, bigint, bigint] => [bigint[3], bigint[3], bigint[3], bigint[3]] 
- */
+ * [bigint, bigint, bigint, bigint] => [bigint[3], bigint[3], bigint[3], bigint[3]] */
 export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   const chunked = new Array(4)
   for (let i = 0; i < 4; i++) {
