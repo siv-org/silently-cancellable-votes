@@ -246,16 +246,26 @@ template ChunkedToBytes(chunks, chunkbits) {
     signal output out[32];
 
     var totalbits = chunks * chunkbits;
-    component bits = Num2Bits(totalbits);
-    var i;
-    for (i = 0; i < chunks; i++) {
-        bits.in += in[i] * (2**(i * chunkbits));
-    }
 
+    component bits = Num2Bits(totalbits);
+
+    // Flatten chunks to bits.in
+    signal flat;
+    flat <== 0;
+    for (var i = 0; i < chunks; i++) {
+        flat <== flat + in[i] * (1 << (i * chunkbits));
+    }
+    bits.in <== flat;
+
+    // Pre-declare signals for bytes
+    signal byte[32];
+
+    // Build bytes from bits
     for (var j = 0; j < 32; j++) {
-        out[j] = 0;
+        byte[j] <== 0;
         for (var k = 0; k < 8; k++) {
-            out[j] += bits.out[j*8 + k] * (1 << k);
+            byte[j] <== byte[j] + bits.out[j*8 + k] * (1 << k);
         }
+        out[j] <== byte[j];
     }
 }
