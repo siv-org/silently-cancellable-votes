@@ -4,3 +4,5 @@ build
 .DS_Store
 circuit-hashes.json
 pnpm-lock.yaml
+bun.lock
+package-lock.json

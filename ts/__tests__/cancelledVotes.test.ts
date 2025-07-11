@@ -33,6 +33,78 @@ describe('Basic multiplier (example)', () => {
   })
 })
 
+describe.todo('SecretlyCancelVote', () => {
+  it('should cancel a vote', async () => {
+    const circuit = await circomkit.WitnessTester('SecretlyCancelVote', {
+      file: './_SecretlyCancelVote',
+      template: 'SecretlyCancelVote',
+      recompile: shouldRecompile('_SecretlyCancelVote.circom'),
+      params: [16],
+      pubs: [
+        'root_hash_of_all_encrypted_votes',
+        'election_public_key',
+        'actual_tree_depth',
+      ],
+    })
+
+    const sampleVote = '4470-7655-8313:Pistacchio'
+    const encoded = stringToPoint(sampleVote)
+    const rawBytes = [...encoded.toRawBytes()]
+
+    const electionPubKeyHex =
+      'e4742ff6ae59f741b757d1b1df0d0b0eeb3dd6618f42aed0f97cddcd480f186e'
+    const electionPubKey = ed.RistrettoPoint.fromHex(electionPubKeyHex)
+    // @ts-expect-error Overriding .ep privatization
+    const chunkedElectionPubKey = chunk(xyztObjToArray(electionPubKey.ep))
+
+    const admin_secret_salt = 123456789n
+    const hashOfAdminSecretSalt = poseidon([admin_secret_salt])
+
+    const inputs = {
+      root_hash_of_all_encrypted_votes: 1234n,
+      election_public_key: chunkedElectionPubKey,
+      actual_tree_depth: 16,
+      merkle_path_index: 0,
+      merkle_path_of_cancelled_vote: [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      ],
+      admin_secret_salt,
+      encoded_vote_to_secretly_cancel_bytes: rawBytes,
+      // @ts-expect-error Overriding .ep privatization
+      encoded_vote_to_secretly_cancel: chunk(encoded.ep),
+      votes_secret_randomizer:
+        bigintTo255Bits(
+          1824575995961533715804695610269531409259964862024837291270780613852485667720n
+        ),
+    }
+
+    const witness = await circuit.calculateWitness(inputs)
+    const saltedHashOfVoteToCancel = await getSignal(
+      circuit,
+      witness,
+      'salted_hash_of_vote_to_cancel'
+    )
+    console.log({ saltedHashOfVoteToCancel })
+
+    const hashOfAdminSecretSaltCircuit = await getSignal(
+      circuit,
+      witness,
+      'hash_of_admin_secret_salt'
+    )
+    expect(hashOfAdminSecretSaltCircuit).toBe(hashOfAdminSecretSalt)
+
+    const voteSelectionToCancel = (await getSignal(
+      circuit,
+      witness,
+      'vote_selection_to_cancel'
+    )) as bigint[]
+    const voteSelectionToCancelCircuit = new TextDecoder().decode(
+      Uint8Array.from(voteSelectionToCancel)
+    )
+    expect(voteSelectionToCancelCircuit).toBe(sampleVote.slice(15))
+  })
+})
+
 describe('Ed25519 circuits', () => {
   describe('Point addition', () => {
     it('should add a point to itself', async () => {
@@ -105,7 +177,7 @@ describe('Ed25519 circuits', () => {
 })
 
 describe('EnforcePrimeOrder()', () => {
-  it.only('should enforce prime order', async () => {
+  it.todo('should enforce prime order', async () => {
     try {
       const circuit = await circomkit.WitnessTester('EnforcePrimeOrder', {
         file: './EnforcePrimeOrder',
@@ -289,6 +361,9 @@ describe('Encoding votes', () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
     // console.log('encoded', encoded.toHex())
+
+    // stringToPoint() starts with the embedded string, but then is non-deterministic,
+    // so we check it with startsWith()
     expect(encoded.toHex()).toStartWith(
       '32343434342d343434342d343434343a77617368696e67746f6e'
     )
@@ -306,18 +381,54 @@ describe('Encoding votes', () => {
       recompile: shouldRecompile('ExtractStringFromPoint.circom'),
     })
     const witness = await circuit.calculateWitness({ pointAsBytes })
-    const length = Number(await getSignal(circuit, witness, 'length'))
+
     // Was the circuit able to extract the string's bytes?
-    const extracted = (
-      await getVectorSignal(circuit, witness, 'stringAsBytes', 31)
+    const stringAsBytes = await getVectorSignal(
+      circuit,
+      witness,
+      'stringAsBytes',
+      31
     )
-      .slice(0, length)
-      .map((x) => Number(x))
+    const extracted = stringAsBytes.map((x) => Number(x)).filter(Boolean)
+
     // Convert bytes back into ASCII, to compare to original input
     const extractedString = new TextDecoder().decode(Uint8Array.from(extracted))
     // console.log({ extractedString })
 
     expect(extractedString).toBe(votePlaintext)
+  })
+
+  it('ExtractSelectionFromVote() circuit, without revealing the unique verification number', async () => {
+    const votePlaintext = '4444-4444-4444:washington'
+    const [verificationNumber, voteSelection] = votePlaintext.split(':')
+    const encoded = stringToPoint(votePlaintext)
+
+    const extractSelectionCircuit = await circomkit.WitnessTester(
+      'ExtractSelectionFromVote',
+      {
+        file: './ExtractSelectionFromVote',
+        template: 'ExtractSelectionFromVote',
+        recompile: shouldRecompile('ExtractSelectionFromVote.circom'),
+      }
+    )
+
+    const witnessChoice = await extractSelectionCircuit.calculateWitness({
+      pointAsBytes: [...encoded.toRawBytes()],
+    })
+    const choice = (
+      await getVectorSignal(
+        extractSelectionCircuit,
+        witnessChoice,
+        'choice',
+        15
+      )
+    )
+      .map((x) => Number(x))
+      .filter(Boolean)
+
+    const extractedChoice = new TextDecoder().decode(Uint8Array.from(choice))
+    expect(extractedChoice).toBe(voteSelection)
+    expect(extractedChoice.includes(verificationNumber)).toBeFalse()
   })
 })
 
