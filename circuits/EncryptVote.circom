@@ -6,9 +6,7 @@ include "ed25519/scalar-multiplication.circom";
 template EncryptVote() {
     signal input election_public_key[4][3]; // aka `recipient`, chunkedRistrettoPoint
     signal input encoded_vote_to_secretly_cancel[4][3]; // chunkedRistrettoPoint
-    signal input votes_secret_randomizer; // bigint
-
-    signal votes_secret_randomizer_bits[255] <== Num2Bits(255)(votes_secret_randomizer);
+    signal input votes_secret_randomizer[255]; // bitify(bigint)
 
     // TODO: Enforce that encoded_vote_to_secretly_cancel is prime-order
     // component enforcePrimeOrder = EnforcePrimeOrder()
@@ -20,7 +18,7 @@ template EncryptVote() {
 
     // First we calc the shared secret: recipient * randomizer
     signal shared_secret[4][3];
-    shared_secret <== ScalarMul()(votes_secret_randomizer_bits, election_public_key);
+    shared_secret <== ScalarMul()(votes_secret_randomizer, election_public_key);
 
     // Then we add the encoded vote to the shared secret
     signal output encrypted_vote[4][3];

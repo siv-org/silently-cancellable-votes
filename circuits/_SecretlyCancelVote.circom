@@ -31,7 +31,7 @@ template SecretlyCancelVote(TREE_DEPTH) {
     // @todo these 2 should be the same thing so read above
     signal input encoded_vote_to_secretly_cancel[4][3]; // Ristretto Point 
     signal input encoded_vote_to_secretly_cancel_bytes[32]; // bytes
-    signal input votes_secret_randomizer; // bigint
+    signal input votes_secret_randomizer[255]; // bitify(bigint)
     
     signal input merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
     signal input merkle_path_index; // integer

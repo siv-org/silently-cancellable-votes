@@ -73,7 +73,9 @@ describe.only('SecretlyCancelVote', () => {
       // @ts-expect-error Overriding .ep privatization
       encoded_vote_to_secretly_cancel: chunk(encoded.ep),
       votes_secret_randomizer:
-        1824575995961533715804695610269531409259964862024837291270780613852485667720n,
+        bigintTo255Bits(
+          1824575995961533715804695610269531409259964862024837291270780613852485667720n
+        ),
     }
 
     const witness = await circuit.calculateWitness(inputs)
