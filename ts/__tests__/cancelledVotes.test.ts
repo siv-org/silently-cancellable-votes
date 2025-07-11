@@ -16,6 +16,22 @@ import {
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
 
+describe('Basic multiplier (example)', () => {
+  it('should multiply two numbers', async () => {
+    const circuit: WitnessTester<['a', 'b'], ['c']> =
+      await circomkit.WitnessTester('MultiplierDemo', {
+        file: './MultiplierDemo',
+        template: 'MultiplierDemo',
+        recompile: shouldRecompile('MultiplierDemo.circom'),
+      })
+
+    const a = BigInt(2)
+    const b = BigInt(3)
+    const c = await circuit.calculateWitness({ a, b })
+    const result = await getSignal(circuit, c, 'c')
+    expect(result).toBe(a * b)
+  })
+})
 
 describe.only('SecretlyCancelVote', () => {
   it('should cancel a vote', async () => {
