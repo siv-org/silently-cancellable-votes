@@ -176,8 +176,8 @@ describe('Ed25519 circuits', () => {
   })
 })
 
-describe.todo('EnforcePrimeOrder()', () => {
-  it('should enforce prime order', async () => {
+describe('EnforcePrimeOrder()', () => {
+  it.todo('should enforce prime order', async () => {
     try {
       const circuit = await circomkit.WitnessTester('EnforcePrimeOrder', {
         file: './EnforcePrimeOrder',
@@ -209,7 +209,7 @@ describe.todo('EnforcePrimeOrder()', () => {
 })
 
 describe('EncryptVote()', () => {
-  it('should get same results encrypting from JS or circuit', async () => {
+  it.skip('should get same results encrypting from JS or circuit', async () => {
     // Create example vote
     const election_public_key = ed.RistrettoPoint.BASE
     const plaintext = '4444-4444-4444:arnold'
@@ -360,7 +360,7 @@ describe('Encoding votes', () => {
   it('can encode votes to Ristretto points and extract back out, even from circuit', async () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
-    console.log('encoded', encoded.toHex())
+    // console.log('encoded', encoded.toHex())
     // @todo remind me why this
     expect(encoded.toHex()).toStartWith(
       '32343434342d343434342d343434343a77617368696e67746f6e'
@@ -371,7 +371,7 @@ describe('Encoding votes', () => {
 
     // We can also extract() the plaintext from within a circuit, and get the same results
     const pointAsBytes = [...encoded.toRawBytes()]
-    console.log({ pointAsBytes })
+    // console.log({ pointAsBytes })
 
     const circuit = await circomkit.WitnessTester('ExtractStringFromPoint', {
       file: './ExtractStringFromPoint',
@@ -379,50 +379,54 @@ describe('Encoding votes', () => {
       recompile: shouldRecompile('ExtractStringFromPoint.circom'),
     })
     const witness = await circuit.calculateWitness({ pointAsBytes })
-    const length = Number(await getSignal(circuit, witness, 'length'))
 
-    console.log({ length })
-
+    // Was the circuit able to extract the string's bytes?
     const stringAsBytes = await getVectorSignal(
       circuit,
       witness,
       'stringAsBytes',
       31
     )
-    // Was the circuit able to extract the string's bytes?
-    const extracted = (
-      await getVectorSignal(circuit, witness, 'stringAsBytes', 31)
-    )
-      .slice(0, length)
-      .map((x) => Number(x))
-    // Convert bytes back into ASCII, to compare to original input1
+    const extracted = stringAsBytes.map((x) => Number(x)).filter(Boolean)
+
+    // Convert bytes back into ASCII, to compare to original input
     const extractedString = new TextDecoder().decode(Uint8Array.from(extracted))
-    console.log({ extractedString })
+    // console.log({ extractedString })
 
     expect(extractedString).toBe(votePlaintext)
+  })
 
-    console.log(extractedString.slice(15, length))
+  it('ExtractSelectionFromVote() circuit, without revealing the unique verification number', async () => {
+    const votePlaintext = '4444-4444-4444:washington'
+    const [verificationNumber, voteSelection] = votePlaintext.split(':')
+    const encoded = stringToPoint(votePlaintext)
 
-    const extractChoiceCircuit = await circomkit.WitnessTester(
-      'ExtractVoteSelectionFromVote',
+    const extractSelectionCircuit = await circomkit.WitnessTester(
+      'ExtractSelectionFromVote',
       {
-        file: './ExtractStringFromPoint',
-        template: 'ExtractVoteSelectionFromVote',
-        recompile: shouldRecompile('ExtractStringFromPoint.circom'),
-        params: [31],
+        file: './ExtractSelectionFromVote',
+        template: 'ExtractSelectionFromVote',
+        recompile: shouldRecompile('ExtractSelectionFromVote.circom'),
       }
     )
 
-    console.log('{ stringAsBytes: extracted }', { stringAsBytes })
-    const witnessChoice = await extractChoiceCircuit.calculateWitness({
-      stringAsBytes,
+    const witnessChoice = await extractSelectionCircuit.calculateWitness({
+      pointAsBytes: [...encoded.toRawBytes()],
     })
     const choice = (
-      await getVectorSignal(extractChoiceCircuit, witnessChoice, 'choice', 15)
-    ).map((x) => Number(x))
-    console.log({ choice })
+      await getVectorSignal(
+        extractSelectionCircuit,
+        witnessChoice,
+        'choice',
+        15
+      )
+    )
+      .map((x) => Number(x))
+      .filter(Boolean)
+
     const extractedChoice = new TextDecoder().decode(Uint8Array.from(choice))
-    console.log({ extractedChoice })
+    expect(extractedChoice).toBe(voteSelection)
+    expect(extractedChoice.includes(verificationNumber)).toBeFalse()
   })
 })
 

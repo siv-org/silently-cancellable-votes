@@ -1,7 +1,7 @@
 pragma circom 2.2.2;
 
 include "EncryptVote.circom";
-include "ExtractVoteSelectionFromVote.circom";
+include "ExtractSelectionFromVote.circom";
 include "MembershipProof.circom";
 include "MerkleRoot.circom";
 include "poseidon.circom";
@@ -52,7 +52,7 @@ template SecretlyCancelVote(TREE_DEPTH) {
     // 2) Prove the cancelled vote content
     var MAX_VOTE_CONTENT_LENGTH = 32 - 1 - 15; // 32 - length_byte - 15_bytes_for_verification_number
     signal output vote_selection_to_cancel[MAX_VOTE_CONTENT_LENGTH]; // integer[], eg. 'abca' -> [97, 98, 99, 97]
-    vote_selection_to_cancel <== ExtractVoteSelectionFromVote()(encoded_vote_to_secretly_cancel_bytes);
+    vote_selection_to_cancel <== ExtractSelectionFromVote()(encoded_vote_to_secretly_cancel_bytes);
 
     // 3) Prove the cancelled vote is unique
     var hashed_encoded_vote_to_secretly_cancel = HashPoint()(encoded_vote_to_secretly_cancel);
