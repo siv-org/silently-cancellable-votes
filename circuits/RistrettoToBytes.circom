@@ -209,14 +209,21 @@ template RistrettoToBytes() {
     }
 }
 
-// Helper templates
 template Multiplexor2(chunks) {
     signal input sel;
     signal input in[2][chunks];
     signal output out[chunks];
 
+    signal notSel;
+    notSel <== 1 - sel;
+
+    signal t0[chunks];
+    signal t1[chunks];
+
     for (var i = 0; i < chunks; i++) {
-        out[i] <== in[0][i] * (1 - sel) + in[1][i] * sel;
+        t0[i] <== in[0][i] * notSel;
+        t1[i] <== in[1][i] * sel;
+        out[i] <== t0[i] + t1[i];
     }
 }
 
