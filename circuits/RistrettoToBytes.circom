@@ -15,6 +15,17 @@ template RistrettoToBytes() {
 
     var base = 85;
 
+    // Constants for Ristretto encoding
+    // SQRT_M1 = 19681161376707505956807079304988542015446066515923890162744021073123829784752
+    var SQRT_M1[3] = [19681161376707505956807079304988542015446066515923890162744021073123829784752 % (1 << base),
+                      (19681161376707505956807079304988542015446066515923890162744021073123829784752 >> base) % (1 << base),
+                      (19681161376707505956807079304988542015446066515923890162744021073123829784752 >> (2 * base)) % (1 << base)];
+
+    // INVSQRT_A_MINUS_D = 54469307008909316920995813868745141605393597292927456921205312896311721017578
+    var INVSQRT_A_MINUS_D[3] = [54469307008909316920995813868745141605393597292927456921205312896311721017578 % (1 << base),
+                                (54469307008909316920995813868745141605393597292927456921205312896311721017578 >> base) % (1 << base),
+                                (54469307008909316920995813868745141605393597292927456921205312896311721017578 >> (2 * base)) % (1 << base)];
+
     // Step 1: u1 = (z + y)*(z - y)
     component add_z_y = ChunkedAdd(3, 3, base);
     component sub_z_y = ChunkedSub(3, base);
@@ -69,21 +80,128 @@ template RistrettoToBytes() {
         mul_D2.b[i] <== mul_u2.out[i];
     }
 
-    // Continue with:
-    // - zInv = D1 * D2 * t
-    // - sign checks: IsNegativeChunked(t * zInv) and IsNegativeChunked(x * zInv)
-    // - conditional swaps (via Multiplexor2 on chunks)
-    // - compute final s = (z - adjusted_y) * D
-    // - final IsNegativeChunked(s) to ensure positive
-
-    // Example: final assign
+    // Step 6: zInv = D1 * D2 * t
+    component mul_zInv_temp = ChunkedMul(3, 3, base);
     for (var i = 0; i < 3; i++) {
-        s[i] <== final_s_value[i]; // from your last step after sign fix
+        mul_zInv_temp.a[i] <== mul_D1.out[i];
+        mul_zInv_temp.b[i] <== mul_D2.out[i];
     }
 
+    component mul_zInv = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_zInv.a[i] <== mul_zInv_temp.out[i];
+        mul_zInv.b[i] <== P[3][i]; // t
+    }
+
+    // Step 7: Check if t * zInv is negative
+    component mul_t_zInv = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_t_zInv.a[i] <== P[3][i]; // t
+        mul_t_zInv.b[i] <== mul_zInv.out[i];
+    }
+
+    component isNegative_t_zInv = IsNegativeChunked(3, base);
+    for (var i = 0; i < 3; i++) {
+        isNegative_t_zInv.in[i] <== mul_t_zInv.out[i];
+    }
+
+    // Step 8: Conditional swap based on t * zInv sign
+    // If t * zInv is negative, we need to swap x and y with sqrt(-1) factors
+    // x' = y * sqrt(-1), y' = x * sqrt(-1)
+    component mul_x_sqrt_m1 = ChunkedMul(3, 3, base);
+    component mul_y_sqrt_m1 = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_x_sqrt_m1.a[i] <== P[0][i]; // x
+        mul_x_sqrt_m1.b[i] <== SQRT_M1[i];
+        mul_y_sqrt_m1.a[i] <== P[1][i]; // y
+        mul_y_sqrt_m1.b[i] <== SQRT_M1[i];
+    }
+
+    component mux_x = Multiplexor2(3);
+    component mux_y = Multiplexor2(3);
+    for (var i = 0; i < 3; i++) {
+        mux_x.sel <== isNegative_t_zInv.out;
+        mux_x.in[0][i] <== P[0][i]; // original x
+        mux_x.in[1][i] <== mul_y_sqrt_m1.out[i]; // y * sqrt(-1)
+        mux_y.sel <== isNegative_t_zInv.out;
+        mux_y.in[0][i] <== P[1][i]; // original y
+        mux_y.in[1][i] <== mul_x_sqrt_m1.out[i]; // x * sqrt(-1)
+    }
+
+    // Step 9: Check if x * zInv is negative
+    component mul_x_zInv = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_x_zInv.a[i] <== mux_x.out[i];
+        mul_x_zInv.b[i] <== mul_zInv.out[i];
+    }
+
+    component isNegative_x_zInv = IsNegativeChunked(3, base);
+    for (var i = 0; i < 3; i++) {
+        isNegative_x_zInv.in[i] <== mul_x_zInv.out[i];
+    }
+
+    // Step 10: Conditional negation of y based on x * zInv sign
+    component neg_y = ChunkedNeg(3, base);
+    for (var i = 0; i < 3; i++) {
+        neg_y.in[i] <== mux_y.out[i];
+    }
+
+    component mux_y_final = Multiplexor2(3);
+    for (var i = 0; i < 3; i++) {
+        mux_y_final.sel <== isNegative_x_zInv.out;
+        mux_y_final.in[0][i] <== mux_y.out[i]; // original y
+        mux_y_final.in[1][i] <== neg_y.out[i]; // negated y
+    }
+
+    // Step 11: Compute s = (z - y) * D
+    component sub_z_y_final = ChunkedSub(3, base);
+    for (var i = 0; i < 3; i++) {
+        sub_z_y_final.a[i] <== P[2][i]; // z
+        sub_z_y_final.b[i] <== mux_y_final.out[i]; // adjusted y
+    }
+
+    // Choose D based on t * zInv sign
+    component mul_D1_invsqrt = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_D1_invsqrt.a[i] <== mul_D1.out[i];
+        mul_D1_invsqrt.b[i] <== INVSQRT_A_MINUS_D[i];
+    }
+
+    component mux_D = Multiplexor2(3);
+    for (var i = 0; i < 3; i++) {
+        mux_D.sel <== isNegative_t_zInv.out;
+        mux_D.in[0][i] <== mul_D2.out[i]; // D2
+        mux_D.in[1][i] <== mul_D1_invsqrt.out[i]; // D1 * INVSQRT_A_MINUS_D
+    }
+
+    component mul_s = ChunkedMul(3, 3, base);
+    for (var i = 0; i < 3; i++) {
+        mul_s.a[i] <== sub_z_y_final.out[i];
+        mul_s.b[i] <== mux_D.out[i];
+    }
+
+    // Ensure s is positive (if negative, negate it)
+    component isNegative_s = IsNegativeChunked(3, base);
+    for (var i = 0; i < 3; i++) {
+        isNegative_s.in[i] <== mul_s.out[i];
+    }
+
+    component neg_s = ChunkedNeg(3, base);
+    for (var i = 0; i < 3; i++) {
+        neg_s.in[i] <== mul_s.out[i];
+    }
+
+    component mux_s_final = Multiplexor2(3);
+    for (var i = 0; i < 3; i++) {
+        mux_s_final.sel <== isNegative_s.out;
+        mux_s_final.in[0][i] <== mul_s.out[i]; // original s
+        mux_s_final.in[1][i] <== neg_s.out[i]; // negated s
+    }
+
+    // Convert final s to bytes
     component sToBytes = ChunkedToBytes(3, base);
     for (var i = 0; i < 3; i++) {
-        sToBytes.in[i] <== s[i];
+        sToBytes.in[i] <== mux_s_final.out[i];
     }
 
     for (var i = 0; i < 32; i++) {
@@ -91,6 +209,37 @@ template RistrettoToBytes() {
     }
 }
 
+// Helper templates
+template Multiplexor2(chunks) {
+    signal input sel;
+    signal input in[2][chunks];
+    signal output out[chunks];
+
+    for (var i = 0; i < chunks; i++) {
+        out[i] <== in[0][i] * (1 - sel) + in[1][i] * sel;
+    }
+}
+
+template ChunkedNeg(chunks, chunkbits) {
+    signal input in[chunks];
+    signal output out[chunks];
+
+    var max_val = (1 << chunkbits) - 1;
+    for (var i = 0; i < chunks; i++) {
+        out[i] <== max_val - in[i];
+    }
+}
+
+template IsNegativeChunked(chunks, chunkbits) {
+    signal input in[chunks];
+    signal output out;
+
+    // Check if the least significant bit of the first chunk is 1
+    // This indicates negativity in little-endian representation
+    component bits = Num2Bits(chunkbits);
+    bits.in <== in[0];
+    out <== bits.out[0];
+}
 
 template ChunkedToBytes(chunks, chunkbits) {
     signal input in[chunks];
