@@ -6,6 +6,7 @@ include "MembershipProof.circom";
 include "MerkleRoot.circom";
 include "poseidon.circom";
 include "HashAdminSalt.circom";
+include "HashPoint.circom";
 
 /**
 Verification #: 4470-7655-8313
