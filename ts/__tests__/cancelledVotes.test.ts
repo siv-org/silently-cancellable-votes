@@ -12,6 +12,7 @@ import {
   extendedToAffine,
   getVectorSignal,
   poseidon,
+  chunkBigInt,
 } from '../utils.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
@@ -461,5 +462,34 @@ describe('HashAdminSalt circuit', () => {
     )
     expect(hash2).toBe(expectedHash2)
     expect(hash2).not.toBe(hash)
+  })
+})
+
+describe('RistrettoToBytes().circom', () => {
+  it.only('can correctly calculate InverseSqrt(t) in circuit', async () => {
+    const circuit = await circomkit.WitnessTester('ChunkedInvertSqrt', {
+      file: './ChunkedSqrt',
+      template: 'ChunkedInvertSqrt',
+      recompile: shouldRecompile('./ChunkedSqrt.circom'),
+      params: [3, 3, 85],
+    })
+
+    const a =
+      1824575995961533715804695610269531409259964862024837291270780613852485667720n
+    const expected = 123456789n
+    const witness = await circuit.calculateWitness({ a: chunkBigInt(a) })
+    const out = await getVectorSignal(circuit, witness, 'out', 3)
+    console.log({ out })
+    expect(out).toEqual(chunkBigInt(expected))
+  })
+
+  it('convert Ristretto point to bytes in circuit should match JS', async () => {
+    const circuit = await circomkit.WitnessTester('RistrettoToBytes', {
+      file: './RistrettoToBytes',
+      template: 'RistrettoToBytes',
+      recompile: shouldRecompile('RistrettoToBytes.circom'),
+    })
+
+    const point = ed.RistrettoPoint.BASE
   })
 })
