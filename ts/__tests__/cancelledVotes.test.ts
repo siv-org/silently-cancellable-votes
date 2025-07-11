@@ -43,7 +43,7 @@ describe.todo('SecretlyCancelVote', () => {
       pubs: [
         'root_hash_of_all_encrypted_votes',
         'election_public_key',
-        'actual_state_tree_depth',
+        'actual_tree_depth',
       ],
     })
 
@@ -63,7 +63,7 @@ describe.todo('SecretlyCancelVote', () => {
     const inputs = {
       root_hash_of_all_encrypted_votes: 1234n,
       election_public_key: chunkedElectionPubKey,
-      actual_state_tree_depth: 16,
+      actual_tree_depth: 16,
       merkle_path_index: 0,
       merkle_path_of_cancelled_vote: [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,

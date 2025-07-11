@@ -19,22 +19,20 @@ icecream
     lock: 6671f6d6d4e4993aec2b44f0e6c6f34211b062c0a70f80989d2bc075ba384146
 */
 
-template SecretlyCancelVote(TREE_DEPTH) {
+template SecretlyCancelVote(MAX_TREE_DEPTH) {
     // Public inputs
     signal input root_hash_of_all_encrypted_votes; // poseidon_hash
     signal input election_public_key[4][3]; // RistrettoPoint.toBytes()
-    // how big the dynamic tree actually is
-    signal input actual_state_tree_depth;
+    signal input actual_tree_depth;
 
     // Private inputs
-    // RP.fromHex(encoded).ep -> chunk -> [x, y, z, t]
-    // @todo figure out which one is more efficient of the two [4][3] -> [32] or [32] -> [4][3]
-    // @todo these 2 should be the same thing so read above
+    // chunk(RP.fromHex(encoded).ep) -> [x, y, z, t]
+    // @todo: derive encoded 4x3 point from 32 bytes, or vice versa, instead of inputting both (which might be different)
     signal input encoded_vote_to_secretly_cancel[4][3]; // Ristretto Point 
     signal input encoded_vote_to_secretly_cancel_bytes[32]; // bytes
     signal input votes_secret_randomizer[255]; // bitify(bigint)
     
-    signal input merkle_path_of_cancelled_vote[TREE_DEPTH]; // poseidon_hash[]
+    signal input merkle_path_of_cancelled_vote[MAX_TREE_DEPTH]; // poseidon_hash[]
     signal input merkle_path_index; // integer
     signal input admin_secret_salt; // bigint
 
@@ -46,7 +44,7 @@ template SecretlyCancelVote(TREE_DEPTH) {
     // Note: Because the above call depends on `votes_secret_randomizer`, it also helps prevent admin from cancelling unauthorized votes, since only voter knows the randomizer, not admin.
 
     // 1b) Then we use the merkle path to prove it's in the set of all encrypted votes
-    MembershipProof(TREE_DEPTH)(encrypted_vote_to_cancel, actual_state_tree_depth, merkle_path_index, merkle_path_of_cancelled_vote, root_hash_of_all_encrypted_votes);
+    MembershipProof(MAX_TREE_DEPTH)(encrypted_vote_to_cancel, actual_tree_depth, merkle_path_index, merkle_path_of_cancelled_vote, root_hash_of_all_encrypted_votes);
 
     // Public outputs
 
