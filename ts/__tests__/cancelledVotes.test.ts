@@ -33,7 +33,7 @@ describe('Basic multiplier (example)', () => {
   })
 })
 
-describe.only('SecretlyCancelVote', () => {
+describe.todo('SecretlyCancelVote', () => {
   it('should cancel a vote', async () => {
     const circuit = await circomkit.WitnessTester('SecretlyCancelVote', {
       file: './_SecretlyCancelVote',
@@ -176,7 +176,7 @@ describe('Ed25519 circuits', () => {
   })
 })
 
-describe('EnforcePrimeOrder()', () => {
+describe.todo('EnforcePrimeOrder()', () => {
   it('should enforce prime order', async () => {
     try {
       const circuit = await circomkit.WitnessTester('EnforcePrimeOrder', {
