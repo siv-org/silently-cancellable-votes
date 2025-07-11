@@ -119,11 +119,11 @@ template RistrettoToBytes() {
 
     component mux_x = Multiplexor2(3);
     component mux_y = Multiplexor2(3);
+    mux_x.sel <== isNegative_t_zInv.out;
+    mux_y.sel <== isNegative_t_zInv.out;
     for (var i = 0; i < 3; i++) {
-        mux_x.sel <== isNegative_t_zInv.out;
         mux_x.in[0][i] <== P[0][i]; // original x
         mux_x.in[1][i] <== mul_y_sqrt_m1.out[i]; // y * sqrt(-1)
-        mux_y.sel <== isNegative_t_zInv.out;
         mux_y.in[0][i] <== P[1][i]; // original y
         mux_y.in[1][i] <== mul_x_sqrt_m1.out[i]; // x * sqrt(-1)
     }
@@ -147,8 +147,8 @@ template RistrettoToBytes() {
     }
 
     component mux_y_final = Multiplexor2(3);
+    mux_y_final.sel <== isNegative_x_zInv.out;
     for (var i = 0; i < 3; i++) {
-        mux_y_final.sel <== isNegative_x_zInv.out;
         mux_y_final.in[0][i] <== mux_y.out[i]; // original y
         mux_y_final.in[1][i] <== neg_y.out[i]; // negated y
     }
@@ -168,8 +168,8 @@ template RistrettoToBytes() {
     }
 
     component mux_D = Multiplexor2(3);
+    mux_D.sel <== isNegative_t_zInv.out;
     for (var i = 0; i < 3; i++) {
-        mux_D.sel <== isNegative_t_zInv.out;
         mux_D.in[0][i] <== mul_D2.out[i]; // D2
         mux_D.in[1][i] <== mul_D1_invsqrt.out[i]; // D1 * INVSQRT_A_MINUS_D
     }
@@ -192,8 +192,8 @@ template RistrettoToBytes() {
     }
 
     component mux_s_final = Multiplexor2(3);
+    mux_s_final.sel <== isNegative_s.out;
     for (var i = 0; i < 3; i++) {
-        mux_s_final.sel <== isNegative_s.out;
         mux_s_final.in[0][i] <== mul_s.out[i]; // original s
         mux_s_final.in[1][i] <== neg_s.out[i]; // negated s
     }
