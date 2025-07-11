@@ -361,7 +361,9 @@ describe('Encoding votes', () => {
     const votePlaintext = '4444-4444-4444:washington'
     const encoded = stringToPoint(votePlaintext)
     // console.log('encoded', encoded.toHex())
-    // @todo remind me why this
+
+    // stringToPoint() starts with the embedded string, but then is non-deterministic,
+    // so we check it with startsWith()
     expect(encoded.toHex()).toStartWith(
       '32343434342d343434342d343434343a77617368696e67746f6e'
     )
