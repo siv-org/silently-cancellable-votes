@@ -15,7 +15,7 @@ template ExtractStringFromPoint() {
     signal output stringAsBytes[maxLength];
 
     // Extract length from first byte (right shifted by 1)
-    component rshift1 = RShift1(5);
+    component rshift1 = RShift1(8);
     rshift1.in <== pointAsBytes[0];
     signal length <== rshift1.out;
 
