@@ -9,6 +9,7 @@
 // Uses built-in crypto module from node.js to generate randomness / hmac-sha256.
 // In browser the line is automatically removed during build time: uses crypto.subtle instead.
 import * as nodeCrypto from 'crypto'
+import bn128 from './bn128_constant'
 
 // Be friendly to bad ECMAScript parsers by not using bigint literals like 123n
 const _0n = BigInt(0)
@@ -447,6 +448,7 @@ class RistrettoPoint {
     console.log({ js_z_plus_y: mod(z + y) })
     console.log({ js_z_minus_y: mod(z - y) })
     console.log({ js_u1: u1 })
+    console.log({ js_bn128_u1: mod(mod(z + y) * mod(z - y), bn128.p) })
     const u2 = mod(x * y) // 2
     // Square root always exists
     const u2sq = mod(u2 * u2)
