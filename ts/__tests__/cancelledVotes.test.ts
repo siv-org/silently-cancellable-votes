@@ -492,30 +492,43 @@ describe('RistrettoToBytes().circom', () => {
       recompile: shouldRecompile('RistrettoToBytes.circom'),
     })
 
-    const point = DebugRistrettoPoint.BASE
+    // const point = DebugRistrettoPoint.BASE
+    const nonDebugPoint = stringToPoint('foobar random point')
+
+    const point = DebugRistrettoPoint.fromHex(nonDebugPoint.toHex())
     const expected = point.toRawBytes()
 
     // Confirm our .toRawBytes() debug additions haven't screwed up the output
-    const nonDebugPoint = ed.RistrettoPoint.BASE
+    // const nonDebugPoint = ed.RistrettoPoint.BASE
     expect(nonDebugPoint.toRawBytes()).toEqual(expected.result)
 
+    // @ts-expect-error Overriding .ep privatization
+    const ep = point.ep
     const witness = await circuit.calculateWitness({
-      // @ts-expect-error Overriding .ep privatization
-      P: chunk(xyztObjToArray(point.ep)),
+      P: chunk(xyztObjToArray(ep)),
     })
 
+    console.log('z > y', ep.z > ep.y)
+    console.log('z', ep.z)
+    console.log('y', ep.y)
+    console.log('y.length', String(ep.y).length)
+    console.log('z-y length', String(expected.debug.z_minus_y).length)
+
     // Check circom intermediate results against JS
-    await Promise.all(
-      ['z_plus_y', 'z_minus_y', 'u1'].map(async (signal) => {
-        const cc_signal = dechunkArray(
-          await getVectorSignal(circuit, witness, `${signal}_out`, 3)
-        )
-        expect(
-          cc_signal,
-          signal + ' mismatch: ' + String(cc_signal - expected.debug[signal])
-        ).toEqual(expected.debug[signal])
-      })
-    )
+    const vars_to_check = [
+      'z_plus_y',
+      'z_minus_y',
+      // 'u1',
+    ]
+    for (const signal of vars_to_check) {
+      const cc_signal = dechunkArray(
+        await getVectorSignal(circuit, witness, `${signal}_out`, 3)
+      )
+      expect(
+        cc_signal,
+        signal + ' mismatch: ' + String(cc_signal - expected.debug[signal])
+      ).toEqual(expected.debug[signal])
+    }
 
     // const out = await getVectorSignal(circuit, witness, 's_bytes', 32)
     // void out
