@@ -42,6 +42,17 @@ template RistrettoToBytes() {
         u1.in2[i] <== z_minus_y.out[i];
     }
 
+    // TODO: Remove debug
+    signal z_plus_y_out[3];
+    signal z_minus_y_out[3];
+    signal u1_out[3];
+    for (var i = 0; i < 3; i++) {
+        z_plus_y_out[i] <== z_plus_y.out[i];
+        z_minus_y_out[i] <== z_minus_y.out[i];
+        u1_out[i] <== u1.out[i];
+    }
+    // End debug
+
     // Step 2: u2 = x * y
     component mul_u2 = ChunkedMul(3, 3, base);
     for (var i = 0; i < 3; i++) {

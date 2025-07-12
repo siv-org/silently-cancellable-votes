@@ -6,7 +6,7 @@ import path from 'path'
 type XYZTPoint = [bigint, bigint, bigint, bigint]
 
 /** A 255-bit bigint, split into 3 85-bit bigints (85 * 3 = 255) */
-export type Chunk = [bigint, bigint, bigint]
+export type Chunk = Vector<3>
 
 /** 4 chunks, corresponding to XYZT coordinates */
 export type ChunkedPoint = [Chunk, Chunk, Chunk, Chunk]
@@ -75,12 +75,14 @@ export const getChunkedPointSignal = async (
   return result as ChunkedPoint
 }
 
-export const getVectorSignal = async (
+type Vector<N extends number> = bigint[] & { __length: N }
+
+export const getVectorSignal = async <N extends number>(
   tester: WitnessTester,
   witness: bigint[],
   outputSignalName: string,
-  length: number
-): Promise<bigint[]> => {
+  length: N
+): Promise<Vector<N>> => {
   // Build array of all signal names
   const signalNames = []
   for (let i = 0; i < length; i++) {
@@ -97,7 +99,7 @@ export const getVectorSignal = async (
     result[i] = BigInt(String(values[signalName]))
   }
 
-  return result
+  return result as Vector<N>
 }
 
 // Helper functions to convert between XYZTPoints and ChunkedPoints
@@ -122,15 +124,15 @@ export function modulus(num: bigint, p = P) {
 const mod = modulus
 
 /** Convert a bigInt into the chucks of Integers */
-export function chunkBigInt(n: bigint): bigint[] {
+export function chunkBigInt(n: bigint): Vector<3> {
   const mod = BigInt(2 ** 85)
-  if (!n) return [0n]
+  if (!n) return [0n, 0n, 0n] as Vector<3>
   const arr = []
   while (n) {
     arr.push(BigInt(modulus(n, mod)))
     n /= mod
   }
-  return arr
+  return arr as Vector<3>
 }
 
 /** Convert ExtendedPoints (XYZTPoint) to arrays of 85-bit chunks
@@ -147,7 +149,7 @@ export function chunk(xyztPoint: XYZTPoint): ChunkedPoint {
   return chunked as ChunkedPoint
 }
 
-export const dechunkArray = (chunked: [bigint, bigint, bigint]): bigint =>
+export const dechunkArray = (chunked: Vector<3>): bigint =>
   chunked[0] + (chunked[1] << 85n) + (chunked[2] << 170n)
 
 /** Convert 85-bit chunks back to XYZTPoint */

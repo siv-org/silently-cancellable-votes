@@ -444,6 +444,9 @@ class RistrettoPoint {
   toRawBytes(): Uint8Array {
     let { x, y, z, t } = this.ep
     const u1 = mod(mod(z + y) * mod(z - y)) // 1
+    console.log({ js_z_plus_y: mod(z + y) })
+    console.log({ js_z_minus_y: mod(z - y) })
+    console.log({ js_u1: u1 })
     const u2 = mod(x * y) // 2
     // Square root always exists
     const u2sq = mod(u2 * u2)
