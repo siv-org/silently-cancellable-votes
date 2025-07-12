@@ -504,24 +504,22 @@ describe('RistrettoToBytes().circom', () => {
       P: chunk(xyztObjToArray(point.ep)),
     })
 
-    const cc_z_plus_y = dechunkArray(
-      await getVectorSignal(circuit, witness, 'z_plus_y_out', 3)
+    // Check circom intermediate results against JS
+    await Promise.all(
+      ['z_plus_y', 'z_minus_y', 'u1'].map(async (signal) => {
+        const cc_signal = dechunkArray(
+          await getVectorSignal(circuit, witness, `${signal}_out`, 3)
+        )
+        expect(
+          cc_signal,
+          signal + ' mismatch: ' + String(cc_signal - expected.debug[signal])
+        ).toEqual(expected.debug[signal])
+      })
     )
-    console.log({ cc_z_plus_y })
 
-    const cc_z_minus_y = dechunkArray(
-      await getVectorSignal(circuit, witness, 'z_minus_y_out', 3)
-    )
-    console.log({ cc_z_minus_y })
-
-    const cc_u1 = dechunkArray(
-      await getVectorSignal(circuit, witness, 'u1_out', 3)
-    )
-    console.log({ cc_u1 })
-
-    const out = await getVectorSignal(circuit, witness, 's_bytes', 32)
-    void out
-    void expected
+    // const out = await getVectorSignal(circuit, witness, 's_bytes', 32)
+    // void out
+    // void expected
     // console.log({ out })
     // console.log({ expected })
     // expect(out).toEqual([...point.toRawBytes()].map(BigInt))

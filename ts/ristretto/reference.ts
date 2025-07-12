@@ -447,8 +447,6 @@ class RistrettoPoint {
     const z_plus_y = mod(z + y)
     const z_minus_y = mod(z - y)
     const u1 = mod(z_plus_y * z_minus_y) // 1
-    console.log({ js_u1: u1 })
-    console.log({ js_bn128_u1: mod(mod(z + y) * mod(z - y), bn128.p) })
     const u2 = mod(x * y) // 2
     // Square root always exists
     const u2sq = mod(u2 * u2)
@@ -471,7 +469,23 @@ class RistrettoPoint {
     if (edIsNegative(s)) s = mod(-s)
     const result = numberTo32BytesLE(s) // 11
 
-    return { result, debug: { z_plus_y } }
+    return {
+      result,
+      debug: {
+        z_plus_y,
+        z_minus_y,
+        u1,
+        u2,
+        u2sq,
+        invsqrt,
+        D1,
+        D2,
+        zInv,
+        D,
+        s,
+        bn128_u1: mod(z_plus_y * z_minus_y, bn128.p),
+      },
+    }
   }
 
   toHex(): string {
