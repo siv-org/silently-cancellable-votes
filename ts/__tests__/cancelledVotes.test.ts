@@ -508,11 +508,11 @@ describe('RistrettoToBytes().circom', () => {
       P: chunk(xyztObjToArray(ep)),
     })
 
-    console.log('z > y', ep.z > ep.y)
-    console.log('z', ep.z)
-    console.log('y', ep.y)
-    console.log('y.length', String(ep.y).length)
-    console.log('z-y length', String(expected.debug.z_minus_y).length)
+    // console.log('z > y', ep.z > ep.y)
+    // console.log('z', ep.z)
+    // console.log('y', ep.y)
+    // console.log('y.length', String(ep.y).length)
+    // console.log('z-y length', String(expected.debug.z_minus_y).length)
 
     // Check circom intermediate results against JS
     const vars_to_check = [

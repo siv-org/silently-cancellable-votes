@@ -28,7 +28,7 @@ template RistrettoToBytes() {
 
     // Step 1: u1 = (z + y) * (z - y)
     component z_plus_y = ChunkedAdd(3, 2, base);
-    component z_minus_y = ChunkedSub(3, base);
+    component z_minus_y = ChunkedSubModP(3, base);
     for (var i = 0; i < 3; i++) {
         z_plus_y.in[0][i] <== P[2][i]; // z
         z_plus_y.in[1][i] <== P[1][i]; // y
@@ -42,7 +42,7 @@ template RistrettoToBytes() {
         u1.in2[i] <== z_minus_y.out[i];
     }
 
-    // TODO: Remove debug
+    // TODO: Comment out debug
     signal z_plus_y_out[3];
     signal z_minus_y_out[3];
     signal u1_out[3];
