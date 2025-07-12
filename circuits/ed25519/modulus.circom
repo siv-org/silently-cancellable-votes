@@ -1,13 +1,9 @@
 pragma circom 2.0.0;
 
-include "binsub.circom";
-include "binadd.circom";
 include "chunkedmul.circom";
-include "./mux1.circom";
 include "chunkedadd.circom";
 include "chunkedsub.circom";
-include "lt.circom";
-include "utils.circom";
+include "mux1.circom";
 
 template ModulusWith25519Chunked51(n) {
   signal input in[n];
