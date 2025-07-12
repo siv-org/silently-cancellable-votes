@@ -442,11 +442,11 @@ class RistrettoPoint {
    * Encodes ristretto point to Uint8Array.
    * https://ristretto.group/formulas/encoding.html
    */
-  toRawBytes(): Uint8Array {
+  toRawBytes(): { result: Uint8Array; debug: Record<string, bigint> } {
     let { x, y, z, t } = this.ep
-    const u1 = mod(mod(z + y) * mod(z - y)) // 1
-    console.log({ js_z_plus_y: mod(z + y) })
-    console.log({ js_z_minus_y: mod(z - y) })
+    const z_plus_y = mod(z + y)
+    const z_minus_y = mod(z - y)
+    const u1 = mod(z_plus_y * z_minus_y) // 1
     console.log({ js_u1: u1 })
     console.log({ js_bn128_u1: mod(mod(z + y) * mod(z - y), bn128.p) })
     const u2 = mod(x * y) // 2
@@ -469,11 +469,13 @@ class RistrettoPoint {
     if (edIsNegative(x * zInv)) y = mod(-y) // 9
     let s = mod((z - y) * D) // 10 (check footer's note, no sqrt(-a))
     if (edIsNegative(s)) s = mod(-s)
-    return numberTo32BytesLE(s) // 11
+    const result = numberTo32BytesLE(s) // 11
+
+    return { result, debug: { z_plus_y } }
   }
 
   toHex(): string {
-    return bytesToHex(this.toRawBytes())
+    return bytesToHex(this.toRawBytes().result)
   }
 
   toString(): string {
@@ -507,6 +509,13 @@ class RistrettoPoint {
 
   multiplyUnsafe(scalar: number | bigint): RistrettoPoint {
     return new RistrettoPoint(this.ep.multiplyUnsafe(scalar))
+  }
+}
+
+/** We alias RistrettoPoint to DebugRistrettoPoint to avoid confusion, and only export the Debug labelled version */
+class DebugRistrettoPoint extends RistrettoPoint {
+  toRawBytes(): { result: Uint8Array; debug: Record<string, bigint> } {
+    return super.toRawBytes()
   }
 }
 
@@ -677,7 +686,7 @@ class Signature {
   }
 }
 
-export { ExtendedPoint, Point, RistrettoPoint, Signature }
+export { ExtendedPoint, Point, DebugRistrettoPoint, Signature }
 
 function isBytes(a: unknown): a is Uint8Array {
   return (

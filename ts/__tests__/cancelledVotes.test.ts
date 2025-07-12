@@ -15,7 +15,7 @@ import {
   chunkBigInt,
   dechunkArray,
 } from '../utils.ts'
-import { RistrettoPoint } from '../ristretto/reference.ts'
+import { DebugRistrettoPoint } from '../ristretto/reference.ts'
 import { pointToString, stringToPoint } from '../curve.ts'
 import { shouldRecompile } from '../watch-circuits.ts'
 
@@ -485,15 +485,19 @@ describe('RistrettoToBytes().circom', () => {
     expect(out).toEqual(chunkBigInt(expected))
   })
 
-  it('RistrettoToBytes() in circuit should match JS', async () => {
+  it.only('RistrettoToBytes() in circuit should match JS', async () => {
     const circuit = await circomkit.WitnessTester('RistrettoToBytes', {
       file: './RistrettoToBytes',
       template: 'RistrettoToBytes',
       recompile: shouldRecompile('RistrettoToBytes.circom'),
     })
 
-    const point = RistrettoPoint.BASE
+    const point = DebugRistrettoPoint.BASE
     const expected = point.toRawBytes()
+
+    // Confirm our .toRawBytes() debug additions haven't screwed up the output
+    const nonDebugPoint = ed.RistrettoPoint.BASE
+    expect(nonDebugPoint.toRawBytes()).toEqual(expected.result)
 
     const witness = await circuit.calculateWitness({
       // @ts-expect-error Overriding .ep privatization
