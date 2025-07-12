@@ -26,20 +26,20 @@ template RistrettoToBytes() {
                                 (INVSQRT_A_MINUS_D_WHOLE >> base) % (1 << base),
                                 (INVSQRT_A_MINUS_D_WHOLE >> (2 * base)) % (1 << base)];
 
-    // Step 1: u1 = (z + y)*(z - y)
-    component add_z_y = ChunkedAdd(3, 2, base);
-    component sub_z_y = ChunkedSub(3, base);
+    // Step 1: u1 = (z + y) * (z - y)
+    component z_plus_y = ChunkedAdd(3, 2, base);
+    component z_minus_y = ChunkedSub(3, base);
     for (var i = 0; i < 3; i++) {
-        add_z_y.in[0][i] <== P[2][i]; // z
-        add_z_y.in[1][i] <== P[1][i]; // y
-        sub_z_y.a[i] <== P[2][i];
-        sub_z_y.b[i] <== P[1][i];
+        z_plus_y.in[0][i] <== P[2][i]; // z
+        z_plus_y.in[1][i] <== P[1][i]; // y
+        z_minus_y.a[i] <== P[2][i];
+        z_minus_y.b[i] <== P[1][i];
     }
 
-    component mul_u1 = ChunkedMul(3, 3, base);
+    component u1 = ChunkedMul(3, 3, base);
     for (var i = 0; i < 3; i++) {
-        mul_u1.in1[i] <== add_z_y.out[i];
-        mul_u1.in2[i] <== sub_z_y.out[i];
+        u1.in1[i] <== z_plus_y.out[i];
+        u1.in2[i] <== z_minus_y.out[i];
     }
 
     // Step 2: u2 = x * y
@@ -57,7 +57,7 @@ template RistrettoToBytes() {
 
     component mul_sqrt = ChunkedMul(3, 3, base);
     for (var i = 0; i < 3; i++) {
-        mul_sqrt.in1[i] <== mul_u1.out[i];
+        mul_sqrt.in1[i] <== u1.out[i];
         mul_sqrt.in2[i] <== sq_u2.out[i];
     }
 
@@ -70,7 +70,7 @@ template RistrettoToBytes() {
     component mul_D1 = ChunkedMul(3, 3, base);
     for (var i = 0; i < 3; i++) {
         mul_D1.in1[i] <== invsqrt.out[i];
-        mul_D1.in2[i] <== mul_u1.out[i];
+        mul_D1.in2[i] <== u1.out[i];
     }
 
     // Step 5: D2 = invsqrt * u2
